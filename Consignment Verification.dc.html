@@ -41,7 +41,7 @@
 </section>
 <section style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
 <input type="text" value="{{ query }}" onInput="{{ onQuery }}" placeholder="2. กรอก HN หรือชื่อคนไข้ (หลายคนคั่นด้วย , เช่น 24-001915, 24-001652)" style="flex:1 1 320px;font-family:inherit;font-size:16px;padding:11px 14px;border:1px solid #9fbbb6;border-radius:8px;outline:none;background:#fff">
-<label style="display:flex;gap:8px;align-items:center;font-size:15px;background:#fff;border:1px solid #d5e3e0;border-radius:8px;padding:10px 14px"><input type="checkbox" checked="{{ onlyCon }}" onChange="{{ onCon }}">เฉพาะ Category CON</label>
+<label style="display:flex;gap:8px;align-items:center;font-size:15px;background:#fff;border:1px solid #d5e3e0;border-radius:8px;padding:10px 14px"><input type="checkbox" checked="{{ onlyCon }}" onChange="{{ onCon }}">เฉพาะ CON และ SUP ที่ขึ้นต้นด้วย 65</label>
 <select onChange="{{ onFilter }}" style="font-family:inherit;font-size:15px;padding:10px 12px;border:1px solid #d5e3e0;border-radius:8px;background:#fff;color:#17302e">
 <option value="all">ทุกสถานะ</option><option value="po">มี PO แล้ว (รับทราบ)</option><option value="nopo">ยังไม่มี PO (ค้างจ่าย)</option></select>
 </section>
@@ -102,7 +102,11 @@ class Component extends DCLogic {
   componentDidMount() {
     this.sync(); this.timer = setInterval(this.sync, 20000);
     try { const s = JSON.parse(localStorage.getItem('consign_saved') || '{}'); this.setState({ saved: s }); } catch (e) {}
-    fetch('data/billing_con.json').then(r => r.json()).then(b => { const h = Object.keys(b[0]).filter(k => k !== '__f'); this.setState({ bill: b, headers: h, cols: this.detect(h), fileMsg: 'โหลดอัตโนมัติ: dailysale 5 ไฟล์ · ' + b.length.toLocaleString() + ' แถว CON (อัปโหลดไฟล์อื่นเพื่อแทนที่ได้)' }); }).catch(() => {});
+    Promise.all([1, 2, 3, 4].map(i => fetch('data/billing_' + i + '.json').then(r => r.json()))).then(ps => {
+      const b = [].concat(...ps).map(a => ({ Date: a[0], HN: a[1], 'Patient Name': a[2], Categorycode: a[3], itemcode: a[4], itemname: a[5], QTY: a[6], Cost: a[7], 'bill number': a[8], __f: 'dailysale' }));
+      const h = ['Date', 'HN', 'Patient Name', 'Categorycode', 'itemcode', 'itemname', 'QTY', 'Cost', 'bill number'];
+      this.setState({ bill: b, headers: h, cols: this.detect(h), fileMsg: 'โหลดอัตโนมัติ: dailysale 5 ไฟล์ · ' + b.length.toLocaleString() + ' แถว (CON + SUP รหัส 65) · อัปโหลดไฟล์อื่นเพื่อแทนที่ได้' });
+    }).catch(() => {});
     Promise.all([fetch('data/po_hn.json').then(r => r.json()), fetch('data/price.json').then(r => r.json())])
       .then(([po, price]) => {
         const idx = {}; po.forEach(p => { idx[this.nh(p[4]) + '|' + p[2]] = p; });
@@ -139,7 +143,7 @@ class Component extends DCLogic {
       if (toks.length && !toks.some(k => (k.n && /\d/.test(k.t) && this.nh(hn).includes(k.n)) || pname.toLowerCase().includes(k.t))) continue;
       const code = String(r[cols.code] || '').trim(); if (!code) continue;
       const vp = price.vp[code]; const cat = cols.cat ? String(r[cols.cat] || '').trim() : (vp ? vp[2] : '');
-      if (onlyCon && cat.toUpperCase() !== 'CON') continue;
+      if (onlyCon && !(cat.toUpperCase() === 'CON' || (cat.toUpperCase() === 'SUP' && /^65/.test(code)))) continue;
       const p = po[this.nh(hn) + '|' + code];
       let cost = 0, src = '', poNo = '';
       if (price.last[code]) { cost = price.last[code][0]; src = 'SAP PO'; } else if (vp && vp[1]) { cost = vp[1]; src = 'VPRICELIST'; }
