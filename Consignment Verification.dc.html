@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>body{margin:0;background:#f3f7f6}a{color:#0b6e69}a:hover{color:#084f4b}</style>
+</helmet>
+<div style="font-family:'IBM Plex Sans Thai',sans-serif;color:#17302e;min-height:100vh;display:flex;flex-direction:column">
+<header style="background:#0b4f4b;color:#fff;padding:18px 32px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+<div><div style="font-size:20px;font-weight:600">ตรวจสอบ Consignment: HIS Billing เทียบ SAP PO</div><div style="font-size:14px;color:#cfe6e3;margin-top:2px">เทียบด้วย Item code + HN · ราคาทุนจาก SAP PO ล่าสุด, ถ้าไม่มีใช้ VPRICELIST</div></div>
+<div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end"><label style="display:flex;gap:8px;align-items:center;font-size:14px;color:#cfe6e3">ผู้ใช้งาน<input type="text" value="{{ user }}" onInput="{{ setUser }}" placeholder="ชื่อผู้บันทึก" style="font-family:inherit;font-size:14px;padding:6px 10px;border-radius:6px;border:0;width:160px"></label><label style="display:flex;gap:8px;align-items:center;font-size:14px;color:#cfe6e3">Google Sheet URL<input type="text" value="{{ api }}" onChange="{{ setApi }}" placeholder="วาง Apps Script Web app URL" style="font-family:inherit;font-size:13px;padding:6px 10px;border-radius:6px;border:0;width:260px"></label><div style="font-size:13px;color:#cfe6e3">{{ syncMsg }}</div><div style="font-size:13px;color:#cfe6e3">{{ dataStatus }}</div></div>
+</header>
+<main style="padding:24px 32px;display:flex;flex-direction:column;gap:20px;max-width:1400px;width:100%;box-sizing:border-box;margin:0 auto">
+<div style="display:flex;gap:4px;border-bottom:2px solid #d5e3e0">
+<button onClick="{{ goCheck }}" style="font-family:inherit;font-size:16px;font-weight:500;padding:10px 22px;border:0;background:{{ tabCheckBg }};color:{{ tabCheckFg }};border-radius:8px 8px 0 0;cursor:pointer">ตรวจสอบ</button>
+<button onClick="{{ goSaved }}" style="font-family:inherit;font-size:16px;font-weight:500;padding:10px 22px;border:0;background:{{ tabSavedBg }};color:{{ tabSavedFg }};border-radius:8px 8px 0 0;cursor:pointer">รายการที่บันทึก ({{ savedCount }})</button>
+</div>
+<div style="display:{{ checkDisp }};flex-direction:column;gap:20px">
+<section style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;padding:18px 20px;display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+<label style="background:#0b6e69;color:#fff;padding:10px 18px;border-radius:8px;font-size:15px;font-weight:500;cursor:pointer">1. อัปโหลดไฟล์ Billing Dailysale (เลือกได้หลายไฟล์)<input type="file" accept=".xlsx,.xls,.csv" multiple="multiple" onChange="{{ onFiles }}" style="display:none"></label>
+<span style="font-size:15px">{{ billingStatus }}</span>
+</div>
+<sc-if value="{{ hasBilling }}" hint-placeholder-val="{{ false }}">
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px">
+<sc-for list="{{ mapFields }}" as="f" hint-placeholder-count="7">
+<label style="display:flex;flex-direction:column;gap:4px;font-size:13px;color:#4b6764">{{ f.label }}
+<select onChange="{{ f.onChange }}" style="font-family:inherit;font-size:14px;padding:6px 8px;border:1px solid #b9cfcb;border-radius:6px;background:#fff;color:#17302e">
+<sc-for list="{{ f.options }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.t }}</option></sc-for>
+</select></label>
+</sc-for>
+</div>
+</sc-if>
+</section>
+<section style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+<input type="text" value="{{ query }}" onInput="{{ onQuery }}" placeholder="2. กรอก HN หรือชื่อคนไข้ (หลายคนคั่นด้วย , เช่น 24-001915, 24-001652)" style="flex:1 1 320px;font-family:inherit;font-size:16px;padding:11px 14px;border:1px solid #9fbbb6;border-radius:8px;outline:none;background:#fff">
+<label style="display:flex;gap:8px;align-items:center;font-size:15px;background:#fff;border:1px solid #d5e3e0;border-radius:8px;padding:10px 14px"><input type="checkbox" checked="{{ onlyCon }}" onChange="{{ onCon }}">เฉพาะ Category CON</label>
+<select onChange="{{ onFilter }}" style="font-family:inherit;font-size:15px;padding:10px 12px;border:1px solid #d5e3e0;border-radius:8px;background:#fff;color:#17302e">
+<option value="all">ทุกสถานะ</option><option value="po">มี PO แล้ว (รับทราบ)</option><option value="nopo">ยังไม่มี PO (ค้างจ่าย)</option></select>
+</section>
+<section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+<div style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;padding:14px 16px"><div style="font-size:13px;color:#4b6764">รายการที่แสดง</div><div style="font-size:26px;font-weight:600">{{ cTotal }}</div></div>
+<div style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;padding:14px 16px"><div style="font-size:13px;color:#4b6764">มี PO แล้ว (รับทราบ)</div><div style="font-size:26px;font-weight:600;color:#0b6e69">{{ cPo }}</div></div>
+<div style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;padding:14px 16px"><div style="font-size:13px;color:#4b6764">ยังไม่มี PO</div><div style="font-size:26px;font-weight:600;color:#a4501a">{{ cNoPo }}</div></div>
+<div style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;padding:14px 16px"><div style="font-size:13px;color:#4b6764">ค่าใช้จ่ายค้างจ่าย (บาท)</div><div style="font-size:26px;font-weight:600;color:#a4501a">{{ cAccrual }}</div></div>
+</section>
+<section style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;overflow:hidden">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #d5e3e0;flex-wrap:wrap">
+<span style="font-size:14px;color:#4b6764">{{ shownNote }}</span>
+<button onClick="{{ saveAll }}" style="font-family:inherit;font-size:14px;font-weight:500;background:#0b6e69;color:#fff;border:0;border-radius:8px;padding:8px 16px;cursor:pointer" style-hover="background:#084f4b">บันทึกทั้งหมดที่แสดง</button>
+</div>
+<div style="overflow-x:auto">
+<table style="width:100%;border-collapse:collapse;font-size:14px">
+<thead><tr style="background:#e8f1ef;text-align:left;color:#274744">
+<th style="padding:10px 12px">HN</th><th style="padding:10px 12px">ชื่อคนไข้</th><th style="padding:10px 12px">วันที่</th><th style="padding:10px 12px">Item code</th><th style="padding:10px 12px">รายการ</th><th style="padding:10px 12px;text-align:right">จำนวน</th><th style="padding:10px 12px;text-align:right">ราคาทุน (รวม VAT สำหรับ SAP)</th><th style="padding:10px 12px">แหล่งราคา</th><th style="padding:10px 12px">บริษัทผู้ขาย</th><th style="padding:10px 12px">เลข PO</th><th style="padding:10px 12px">สถานะ</th><th style="padding:10px 12px"></th>
+</tr></thead>
+<tbody>
+<sc-for list="{{ rows }}" as="r" hint-placeholder-count="5">
+<tr style="border-top:1px solid #e3ece9">
+<td style="padding:9px 12px;white-space:nowrap">{{ r.hn }}</td><td style="padding:9px 12px">{{ r.pname }}</td><td style="padding:9px 12px;white-space:nowrap">{{ r.date }}</td><td style="padding:9px 12px;white-space:nowrap">{{ r.code }}</td><td style="padding:9px 12px">{{ r.item }}</td><td style="padding:9px 12px;text-align:right">{{ r.qty }}</td><td style="padding:9px 12px;text-align:right">{{ r.cost }}</td><td style="padding:9px 12px;color:#4b6764">{{ r.src }}</td><td style="padding:9px 12px">{{ r.vendor }}</td><td style="padding:9px 12px">{{ r.po }}</td>
+<td style="padding:9px 12px;white-space:nowrap"><span style="padding:3px 10px;border-radius:99px;font-size:13px;font-weight:500;background:{{ r.bg }};color:{{ r.fg }}">{{ r.status }}</span></td>
+<td style="padding:9px 12px"><button onClick="{{ r.save }}" style="font-family:inherit;font-size:13px;border:1px solid #0b6e69;color:#0b6e69;background:{{ r.btnBg }};border-radius:6px;padding:5px 12px;cursor:pointer">{{ r.btnText }}</button></td>
+</tr>
+</sc-for>
+</tbody></table></div>
+<div style="padding:28px;text-align:center;color:#4b6764;font-size:15px">{{ emptyNote }}</div>
+</section>
+</div>
+<div style="display:{{ savedDisp }};flex-direction:column;gap:16px">
+<section style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+<div><div style="font-size:16px;font-weight:600">บันทึกแล้ว {{ savedCount }} รายการ · ค้างจ่าย {{ savedAccrual }} บาท</div><div style="font-size:14px;color:#4b6764">ส่งออก Excel ให้บัญชี · ส่งไฟล์แชร์ให้ผู้ใช้อื่นรวมข้อมูล {{ mergeMsg }}</div></div>
+<div style="display:flex;gap:10px;flex-wrap:wrap">
+<input type="text" value="{{ sq }}" onInput="{{ onSq }}" placeholder="ค้นหา HN / ชื่อ / บริษัท / รหัส" style="font-family:inherit;font-size:14px;padding:9px 12px;border:1px solid #9fbbb6;border-radius:8px;width:240px">
+<button onClick="{{ exportShare }}" style="font-family:inherit;font-size:14px;border:1px solid #0b6e69;color:#0b6e69;background:#fff;border-radius:8px;padding:9px 16px;cursor:pointer">ส่งออกไฟล์แชร์ (.json)</button>
+<label style="font-size:14px;border:1px solid #0b6e69;color:#0b6e69;background:#fff;border-radius:8px;padding:9px 16px;cursor:pointer">รวมไฟล์จากผู้ใช้อื่น<input type="file" accept=".json" multiple="multiple" onChange="{{ importShare }}" style="display:none"></label>
+<button onClick="{{ clearSaved }}" style="font-family:inherit;font-size:14px;border:1px solid #b9cfcb;color:#274744;background:#fff;border-radius:8px;padding:9px 16px;cursor:pointer">ล้างทั้งหมด</button>
+<button onClick="{{ exportXlsx }}" style="font-family:inherit;font-size:14px;font-weight:500;background:#0b6e69;color:#fff;border:0;border-radius:8px;padding:9px 18px;cursor:pointer" style-hover="background:#084f4b">ดาวน์โหลด Excel ค้างจ่าย</button>
+</div></section>
+<section style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;overflow:hidden"><div style="overflow-x:auto">
+<table style="width:100%;border-collapse:collapse;font-size:14px">
+<thead><tr style="background:#e8f1ef;text-align:left;color:#274744"><th style="padding:10px 12px">HN</th><th style="padding:10px 12px">ชื่อคนไข้</th><th style="padding:10px 12px">วันที่</th><th style="padding:10px 12px">Item code</th><th style="padding:10px 12px">รายการ</th><th style="padding:10px 12px;text-align:right">จำนวน</th><th style="padding:10px 12px;text-align:right">ราคาทุน</th><th style="padding:10px 12px">บริษัทผู้ขาย</th><th style="padding:10px 12px">เลข PO</th><th style="padding:10px 12px">สถานะ</th><th style="padding:10px 12px">ผู้บันทึก</th><th style="padding:10px 12px"></th></tr></thead>
+<tbody>
+<sc-for list="{{ savedRows }}" as="r" hint-placeholder-count="3">
+<tr style="border-top:1px solid #e3ece9"><td style="padding:9px 12px;white-space:nowrap">{{ r.hn }}</td><td style="padding:9px 12px">{{ r.pname }}</td><td style="padding:9px 12px;white-space:nowrap">{{ r.date }}</td><td style="padding:9px 12px;white-space:nowrap">{{ r.code }}</td><td style="padding:9px 12px">{{ r.item }}</td><td style="padding:9px 12px;text-align:right">{{ r.qty }}</td><td style="padding:9px 12px;text-align:right">{{ r.cost }}</td><td style="padding:9px 12px">{{ r.vendor }}</td><td style="padding:9px 12px">{{ r.po }}</td>
+<td style="padding:9px 12px;white-space:nowrap"><span style="padding:3px 10px;border-radius:99px;font-size:13px;font-weight:500;background:{{ r.bg }};color:{{ r.fg }}">{{ r.status }}</span></td>
+<td style="padding:9px 12px;white-space:nowrap">{{ r.by }}</td><td style="padding:9px 12px"><button onClick="{{ r.remove }}" style="font-family:inherit;font-size:13px;border:1px solid #c9a08a;color:#7a3a10;background:#fff;border-radius:6px;padding:5px 12px;cursor:pointer">ลบ</button></td></tr>
+</sc-for></tbody></table></div>
+<div style="padding:28px;text-align:center;color:#4b6764;font-size:15px">{{ savedEmpty }}</div></section>
+</div>
+</main></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { api: localStorage.getItem('consign_api') || 'https://script.google.com/macros/s/AKfycbz61GyfTxjSoxCoRyKGxqiU5PfRzsNkwKl9kGarV4nm5wVLQE9mnjd--vrw7c8gDumZ/exec', syncMsg: '', user: localStorage.getItem('consign_user') || '', mergeMsg: '', tab: 'check', sq: '', po: null, price: null, bill: [], cols: {}, headers: [], query: '', onlyCon: true, filter: 'all', saved: {}, fileMsg: '', loadErr: '' };
+  componentDidMount() {
+    this.sync(); this.timer = setInterval(this.sync, 20000);
+    try { const s = JSON.parse(localStorage.getItem('consign_saved') || '{}'); this.setState({ saved: s }); } catch (e) {}
+    fetch('data/billing_con.json').then(r => r.json()).then(b => { const h = Object.keys(b[0]).filter(k => k !== '__f'); this.setState({ bill: b, headers: h, cols: this.detect(h), fileMsg: 'โหลดอัตโนมัติ: dailysale 5 ไฟล์ · ' + b.length.toLocaleString() + ' แถว CON (อัปโหลดไฟล์อื่นเพื่อแทนที่ได้)' }); }).catch(() => {});
+    Promise.all([fetch('data/po_hn.json').then(r => r.json()), fetch('data/price.json').then(r => r.json())])
+      .then(([po, price]) => {
+        const idx = {}; po.forEach(p => { idx[this.nh(p[4]) + '|' + p[2]] = p; });
+        this.setState({ po: idx, poN: po.length, price });
+      }).catch(e => this.setState({ loadErr: String(e) }));
+  }
+  nh(s) { return String(s || '').toUpperCase().replace(/[^0-9A-Z]/g, '').replace(/^H(?=\d{2})/, ''); }
+  num(v) { const n = parseFloat(String(v ?? '').replace(/,/g, '')); return isNaN(n) ? 0 : n; }
+  fmt(n) { return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  detect(h) {
+    const f = (re) => h.find(x => re.test(String(x))) || '';
+    return { hn: f(/^hn$|^hn[^a-z]|hn\b|เลข.*hn/i) || f(/hn/i), pname: f(/ชื่อ.*(ผู้ป่วย|คนไข้)|patient.*name|ชื่อ-?สกุล|^name$/i) || f(/ชื่อ/),
+      code: f(/item.?code|order.?item.?code|รหัส.*(สินค้า|รายการ|พัสดุ)|^code$|ordercode|itemcode/i) || f(/code|รหัส/i),
+      item: f(/item.?name|ชื่อ.*(สินค้า|รายการ)|description|รายการ/i), cat: f(/category.?code|ordercategory|หมวด|category/i),
+      qty: f(/qty|quantity|จำนวน/i), date: f(/date|วันที่/i), amt: f(/amount|net|ราคา|มูลค่า|จำนวนเงิน|price/i) };
+  }
+  onFiles = async (e) => {
+    const files = [...e.target.files]; if (!files.length) return;
+    this.setState({ fileMsg: 'กำลังอ่านไฟล์...' });
+    let all = [], headers = new Set(); const names = [];
+    for (const f of files) {
+      const wb = XLSX.read(await f.arrayBuffer(), { type: 'array', cellDates: true });
+      for (const sn of wb.SheetNames) { const js = XLSX.utils.sheet_to_json(wb.Sheets[sn], { defval: '' }); if (js.length) { js.forEach(r => { r.__f = f.name; all.push(r); }); Object.keys(js[0]).forEach(k => headers.add(k)); } }
+      names.push(f.name);
+    }
+    const h = [...headers]; this.setState({ bill: all, headers: h, cols: this.detect(h), fileMsg: names.length + ' ไฟล์ · ' + all.length.toLocaleString() + ' แถว' });
+    e.target.value = '';
+  };
+  compute() {
+    const { po, price, bill, cols, query, onlyCon, filter } = this.state; if (!po || !price || !cols.hn || !cols.code) return [];
+    const toks = query.split(/[,;\n]+/).map(t => t.trim().toLowerCase()).filter(Boolean).map(t => ({ t, n: this.nh(t) })); const out = [];
+    for (const r of bill) {
+      const hn = String(r[cols.hn] || '').trim(), pname = String(r[cols.pname] || '').trim(); if (!hn && !pname) continue;
+      if (toks.length && !toks.some(k => (k.n && /\d/.test(k.t) && this.nh(hn).includes(k.n)) || pname.toLowerCase().includes(k.t))) continue;
+      const code = String(r[cols.code] || '').trim(); if (!code) continue;
+      const vp = price.vp[code]; const cat = cols.cat ? String(r[cols.cat] || '').trim() : (vp ? vp[2] : '');
+      if (onlyCon && cat.toUpperCase() !== 'CON') continue;
+      const p = po[this.nh(hn) + '|' + code];
+      let cost = 0, src = '', poNo = '';
+      if (price.last[code]) { cost = price.last[code][0]; src = 'SAP PO'; } else if (vp && vp[1]) { cost = vp[1]; src = 'VPRICELIST'; }
+      let vendor = p ? p[10] : (price.vend && price.vend[code]) || ''; if (/^V[PT]\d+$/.test(vendor)) vendor = '';
+      if (!cost && r.Cost) { cost = this.num(r.Cost); src = 'HIS Cost'; }
+      if (p) { poNo = p[0]; cost = p[7]; src = 'SAP PO (HN นี้)'; }
+      if (filter === 'po' && !p || filter === 'nopo' && p) continue;
+      let d = r[cols.date]; d = d instanceof Date ? d.toISOString().slice(0, 10) : String(d || '');
+      out.push({ key: this.nh(hn) + '|' + code + '|' + d + '|' + (r.__f || ''), hn, pname, date: d, code, item: String(r[cols.item] || (vp ? vp[0] : '')), qty: this.num(r[cols.qty]) || 1, cost, src, vendor, po: poNo, has: !!p });
+    }
+    return out;
+  }
+  api() { return (this.state.api || '').trim(); }
+  setApi = (e) => { localStorage.setItem('consign_api', e.target.value); this.setState({ api: e.target.value }, () => this.sync()); };
+  applyRemote(j) { const s = {}; (j.rows || []).forEach(r => { r.hn = String(r.hn); r.code = String(r.code); r.qty = this.num(r.qty); r.cost = this.num(r.cost); s[r.key] = r; }); localStorage.setItem('consign_saved', JSON.stringify(s)); this.setState({ saved: s, syncMsg: 'ซิงก์กับ Google Sheet ล่าสุด ' + new Date().toLocaleTimeString('th-TH') }); }
+  sync = () => { const u = this.api(); if (!u) { this.setState({ syncMsg: '' }); return; } fetch(u).then(r => r.json()).then(j => j.ok ? this.applyRemote(j) : Promise.reject(j.error)).catch(e => this.setState({ syncMsg: 'ซิงก์ไม่สำเร็จ: ' + e })); };
+  push(body) { const u = this.api(); if (!u) return; this.setState({ syncMsg: 'กำลังส่งข้อมูล...' }); fetch(u, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) }).then(r => r.json()).then(j => j.ok ? this.applyRemote(j) : Promise.reject(j.error)).catch(e => this.setState({ syncMsg: 'ส่งข้อมูลไม่สำเร็จ: ' + e })); }
+  componentWillUnmount() { clearInterval(this.timer); }
+  setUser = (e) => { localStorage.setItem('consign_user', e.target.value); this.setState({ user: e.target.value }); };
+  exportShare = () => {
+    const blob = new Blob([JSON.stringify({ v: 1, rows: Object.values(this.state.saved) })], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'consignment_shared_' + (this.state.user || 'user') + '_' + new Date().toISOString().slice(0, 10) + '.json'; a.click();
+  };
+  importShare = async (e) => {
+    const fs = [...e.target.files]; const s = { ...this.state.saved }; let add = 0, dup = 0;
+    for (const f of fs) { try { const j = JSON.parse(await f.text()); (j.rows || []).forEach(r => { if (s[r.key]) { dup++; if ((r.at || '') > (s[r.key].at || '')) s[r.key] = r; } else { s[r.key] = r; add++; } }); } catch (x) {} }
+    localStorage.setItem('consign_saved', JSON.stringify(s)); this.setState({ saved: s, mergeMsg: 'รวมไฟล์แล้ว: เพิ่มใหม่ ' + add + ' · ซ้ำ ' + dup + ' รายการ' }); e.target.value = '';
+  };
+  saveRows(list) { const s = { ...this.state.saved }; const by = this.state.user || 'ไม่ระบุชื่อ', at = new Date().toISOString(); list.forEach(r => { s[r.key] = { ...r, by, at }; }); this.push({ action: 'upsert', rows: list.map(r => ({ ...r, by, at })) }); localStorage.setItem('consign_saved', JSON.stringify(s)); this.setState({ saved: s }); }
+  exportXlsx = () => {
+    const L = Object.values(this.state.saved); if (!L.length) return;
+    const det = L.map(r => ({ HN: r.hn, 'ชื่อคนไข้': r.pname, 'วันที่': r.date, 'Item code': r.code, 'รายการ': r.item, 'จำนวน': r.qty, 'ราคาทุน': r.cost || '', 'แหล่งราคา': r.src, 'บริษัทผู้ขาย': r.vendor, 'เลข PO': r.po, 'ผู้บันทึก': r.by || '', 'เวลาบันทึก': (r.at || '').slice(0, 16).replace('T', ' '), 'สถานะ': r.has ? 'มี PO (รับทราบ)' : 'ค้างจ่าย', 'มูลค่าค้างจ่าย': r.has ? 0 : r.cost * r.qty }));
+    const g = {}, m = {};
+    L.filter(r => !r.has).forEach(r => { const k = r.hn; g[k] = g[k] || { HN: r.hn, 'ชื่อคนไข้': r.pname, 'จำนวนรายการ': 0, 'มูลค่าค้างจ่าย': 0 }; g[k]['จำนวนรายการ']++; g[k]['มูลค่าค้างจ่าย'] += r.cost * r.qty; const mo = (r.date || '').slice(0, 7); m[mo] = m[mo] || { 'เดือน': mo, 'จำนวนรายการ': 0, 'มูลค่าค้างจ่าย': 0 }; m[mo]['จำนวนรายการ']++; m[mo]['มูลค่าค้างจ่าย'] += r.cost * r.qty; });
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(det), 'รายละเอียด');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(Object.values(g)), 'สรุปรายคนไข้');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(Object.values(m).sort((a, b) => a['เดือน'] < b['เดือน'] ? -1 : 1)), 'สรุปรายเดือน');
+    XLSX.writeFile(wb, 'Consignment_ค้างจ่าย_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+  };
+  renderVals() {
+    const s = this.state, all = this.compute(), rows = all.slice(0, 300);
+    const noPo = all.filter(r => !r.has), saved = Object.values(s.saved), sNo = saved.filter(r => !r.has);
+    const mapFields = [['hn', 'HN'], ['pname', 'ชื่อคนไข้'], ['code', 'Item code'], ['item', 'ชื่อรายการ'], ['cat', 'Categorycode'], ['qty', 'จำนวน'], ['date', 'วันที่']].map(([k, label]) => ({
+      label, onChange: (e) => this.setState({ cols: { ...s.cols, [k]: e.target.value } }),
+      options: [{ v: '', t: '— ไม่ระบุ —', sel: !s.cols[k] }].concat(s.headers.map(h => ({ v: h, t: h, sel: s.cols[h] === h || s.cols[k] === h })))
+    }));
+    const ready = !!s.po && !!s.price;
+    const sq = s.sq.trim().toLowerCase(), isC = s.tab === 'check';
+    const savedRows = saved.filter(r => !sq || [r.hn, r.pname, r.vendor, r.code, r.item].join(' ').toLowerCase().includes(sq)).sort((a, b) => a.hn < b.hn ? -1 : a.hn > b.hn ? 1 : a.date < b.date ? -1 : 1).map(r => ({ ...r, cost: r.cost ? this.fmt(r.cost) : '', status: r.has ? 'มี PO · รับทราบ' : 'ค้างจ่าย', bg: r.has ? '#d9efe9' : '#f8e3d3', fg: r.has ? '#0b4f4b' : '#7a3a10', remove: () => { const n = { ...this.state.saved }; delete n[r.key]; this.push({ action: 'delete', keys: [r.key] }); localStorage.setItem('consign_saved', JSON.stringify(n)); this.setState({ saved: n }); } }));
+    return {
+      goCheck: () => this.setState({ tab: 'check' }), goSaved: () => this.setState({ tab: 'saved' }), checkDisp: isC ? 'flex' : 'none', savedDisp: isC ? 'none' : 'flex',
+      tabCheckBg: isC ? '#0b6e69' : 'transparent', tabCheckFg: isC ? '#fff' : '#274744', tabSavedBg: isC ? 'transparent' : '#0b6e69', tabSavedFg: isC ? '#274744' : '#fff',
+      api: s.api, setApi: this.setApi, syncMsg: s.syncMsg || (s.api ? '' : 'ยังไม่ได้เชื่อม Google Sheet (บันทึกในเครื่องนี้เท่านั้น)'),
+      user: s.user, setUser: this.setUser, exportShare: this.exportShare, importShare: this.importShare, mergeMsg: s.mergeMsg,
+      sq: s.sq, onSq: e => this.setState({ sq: e.target.value }), savedRows, savedEmpty: savedRows.length ? '' : 'ยังไม่มีรายการที่บันทึก',
+      dataStatus: s.loadErr ? 'โหลดข้อมูลไม่สำเร็จ' : ready ? 'SAP PO ที่มี HN: ' + s.poN + ' รายการ · VPRICELIST: ' + Object.keys(s.price.vp).length.toLocaleString() + ' รหัส' : 'กำลังโหลดข้อมูล SAP...',
+      onFiles: this.onFiles, billingStatus: s.fileMsg || 'ยังไม่ได้อัปโหลดไฟล์', hasBilling: s.bill.length > 0, mapFields,
+      query: s.query, onQuery: e => this.setState({ query: e.target.value }), onlyCon: s.onlyCon, onCon: e => this.setState({ onlyCon: e.target.checked }), onFilter: e => this.setState({ filter: e.target.value }),
+      cTotal: all.length.toLocaleString(), cPo: (all.length - noPo.length).toLocaleString(), cNoPo: noPo.length.toLocaleString(), cAccrual: this.fmt(noPo.reduce((a, r) => a + r.cost * r.qty, 0)),
+      shownNote: all.length > 300 ? 'แสดง 300 จาก ' + all.length.toLocaleString() + ' รายการ (กรองเพิ่มด้วย HN/ชื่อ)' : 'แสดง ' + all.length + ' รายการ',
+      rows: rows.map(r => { const sv = !!s.saved[r.key]; return { ...r, qty: r.qty, cost: r.cost ? this.fmt(r.cost) : '', status: r.has ? 'มี PO · รับทราบ' : 'ค้างจ่าย', bg: r.has ? '#d9efe9' : '#f8e3d3', fg: r.has ? '#0b4f4b' : '#7a3a10', btnText: sv ? 'บันทึกแล้ว · ' + (s.saved[r.key].by || '') : 'บันทึก', btnBg: sv ? '#d9efe9' : '#fff', save: () => this.saveRows([r]) }; }),
+      emptyNote: !ready ? '' : !s.bill.length ? 'อัปโหลดไฟล์ Billing เพื่อเริ่มตรวจสอบ' : !s.cols.hn || !s.cols.code ? 'เลือกคอลัมน์ HN และ Item code ด้านบน' : all.length ? '' : 'ไม่พบรายการตามเงื่อนไข',
+      saveAll: () => this.saveRows(all), savedCount: saved.length, savedAccrual: this.fmt(sNo.reduce((a, r) => a + r.cost * r.qty, 0)),
+      clearSaved: () => { if (this.api() && !confirm('ล้างข้อมูลใน Google Sheet ของทุกคน?')) return; this.push({ action: 'clear' }); localStorage.removeItem('consign_saved'); this.setState({ saved: {} }); }, exportXlsx: this.exportXlsx
+    };
+  }
+}
+</script>
+</body>
+</html>
