@@ -43,6 +43,8 @@
 <input type="text" value="{{ query }}" onInput="{{ onQuery }}" placeholder="2. กรอก HN หรือชื่อคนไข้ (หลายคนคั่นด้วย , เช่น 24-001915, 24-001652)" style="flex:1 1 320px;font-family:inherit;font-size:16px;padding:11px 14px;border:1px solid #9fbbb6;border-radius:8px;outline:none;background:#fff">
 <label style="display:flex;gap:8px;align-items:center;font-size:15px;background:#fff;border:1px solid #d5e3e0;border-radius:8px;padding:10px 14px"><input type="checkbox" checked="{{ onlyCon }}" onChange="{{ onCon }}">CON</label>
 <label style="display:flex;gap:8px;align-items:center;font-size:15px;background:#fff;border:1px solid #d5e3e0;border-radius:8px;padding:10px 14px"><input type="checkbox" checked="{{ onlySup }}" onChange="{{ onSup }}">SUP (รหัสขึ้นต้น 65)</label>
+<input type="text" value="{{ codeQ }}" onInput="{{ onCodeQ }}" placeholder="รหัสเวชภัณฑ์ (คั่นด้วย ,)" style="flex:0 1 220px;font-family:inherit;font-size:15px;padding:10px 12px;border:1px solid #9fbbb6;border-radius:8px;outline:none;background:#fff">
+<label style="display:flex;gap:8px;align-items:center;font-size:14px;background:#fff;border:1px solid #d5e3e0;border-radius:8px;padding:6px 12px">ตั้งแต่<input type="date" value="{{ dFrom }}" onChange="{{ onFrom }}" style="font-family:inherit;font-size:14px;border:0;outline:none">ถึง<input type="date" value="{{ dTo }}" onChange="{{ onTo }}" style="font-family:inherit;font-size:14px;border:0;outline:none"></label>
 <select onChange="{{ onFilter }}" style="font-family:inherit;font-size:15px;padding:10px 12px;border:1px solid #d5e3e0;border-radius:8px;background:#fff;color:#17302e">
 <option value="all">ทุกสถานะ</option><option value="po">มี PO แล้ว (รับทราบ)</option><option value="nopo">ยังไม่มี PO (ค้างจ่าย)</option></select>
 </section>
@@ -50,7 +52,7 @@
 <div style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;padding:14px 16px"><div style="font-size:13px;color:#4b6764">รายการที่แสดง</div><div style="font-size:26px;font-weight:600">{{ cTotal }}</div></div>
 <div style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;padding:14px 16px"><div style="font-size:13px;color:#4b6764">มี PO แล้ว (รับทราบ)</div><div style="font-size:26px;font-weight:600;color:#0b6e69">{{ cPo }}</div></div>
 <div style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;padding:14px 16px"><div style="font-size:13px;color:#4b6764">ยังไม่มี PO</div><div style="font-size:26px;font-weight:600;color:#a4501a">{{ cNoPo }}</div></div>
-<div style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;padding:14px 16px"><div style="font-size:13px;color:#4b6764">ค่าใช้จ่ายค้างจ่าย (บาท)</div><div style="font-size:26px;font-weight:600;color:#a4501a">{{ cAccrual }}</div></div>
+<div style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;padding:14px 16px"><div style="font-size:13px;color:#4b6764">ค่าใช้จ่ายค้างจ่าย (บาท)</div><div style="font-size:26px;font-weight:600;color:#a4501a">{{ cAccrual }}</div><div style="margin-top:8px;padding-top:8px;border-top:1px solid #e3ece9;font-size:14px;color:#274744">บันทึกแล้ว {{ savedCount }} รายการ: <b style="color:#0b6e69">{{ savedAccrual }}</b> บาท</div></div>
 </section>
 <section style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;overflow:hidden">
 <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #d5e3e0;flex-wrap:wrap">
@@ -79,6 +81,7 @@
 <div><div style="font-size:16px;font-weight:600">บันทึกแล้ว {{ savedCount }} รายการ · ค้างจ่าย {{ savedAccrual }} บาท</div><div style="font-size:14px;color:#4b6764">ส่งออก Excel ให้บัญชี · ส่งไฟล์แชร์ให้ผู้ใช้อื่นรวมข้อมูล {{ mergeMsg }}</div></div>
 <div style="display:flex;gap:10px;flex-wrap:wrap">
 <input type="text" value="{{ sq }}" onInput="{{ onSq }}" placeholder="ค้นหา HN / ชื่อ / บริษัท / รหัส" style="font-family:inherit;font-size:14px;padding:9px 12px;border:1px solid #9fbbb6;border-radius:8px;width:240px">
+<button onClick="{{ exportSap }}" style="font-family:inherit;font-size:14px;font-weight:500;background:#17302e;color:#fff;border:0;border-radius:8px;padding:9px 16px;cursor:pointer">Export Excel สำหรับ SAP (PO)</button>
 <button onClick="{{ exportShare }}" style="font-family:inherit;font-size:14px;border:1px solid #0b6e69;color:#0b6e69;background:#fff;border-radius:8px;padding:9px 16px;cursor:pointer">ส่งออกไฟล์แชร์ (.json)</button>
 <label style="font-size:14px;border:1px solid #0b6e69;color:#0b6e69;background:#fff;border-radius:8px;padding:9px 16px;cursor:pointer">รวมไฟล์จากผู้ใช้อื่น<input type="file" accept=".json" multiple="multiple" onChange="{{ importShare }}" style="display:none"></label>
 <button onClick="{{ clearSaved }}" style="font-family:inherit;font-size:14px;border:1px solid #b9cfcb;color:#274744;background:#fff;border-radius:8px;padding:9px 16px;cursor:pointer">ล้างทั้งหมด</button>
@@ -99,7 +102,7 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  state = { onlySup: false, api: localStorage.getItem('consign_api') || 'https://script.google.com/macros/s/AKfycbz61GyfTxjSoxCoRyKGxqiU5PfRzsNkwKl9kGarV4nm5wVLQE9mnjd--vrw7c8gDumZ/exec', syncMsg: '', user: localStorage.getItem('consign_user') || '', mergeMsg: '', tab: 'check', sq: '', po: null, price: null, bill: [], cols: {}, headers: [], query: '', onlyCon: true, filter: 'all', saved: {}, fileMsg: '', loadErr: '' };
+  state = { codeQ: '', dFrom: '', dTo: '', onlySup: false, api: localStorage.getItem('consign_api') || 'https://script.google.com/macros/s/AKfycbz61GyfTxjSoxCoRyKGxqiU5PfRzsNkwKl9kGarV4nm5wVLQE9mnjd--vrw7c8gDumZ/exec', syncMsg: '', user: localStorage.getItem('consign_user') || '', mergeMsg: '', tab: 'check', sq: '', po: null, price: null, bill: [], cols: {}, headers: [], query: '', onlyCon: true, filter: 'all', saved: {}, fileMsg: '', loadErr: '' };
   componentDidMount() {
     this.sync(); this.timer = setInterval(this.sync, 20000);
     try { const s = JSON.parse(localStorage.getItem('consign_saved') || '{}'); this.setState({ saved: s }); } catch (e) {}
@@ -137,12 +140,15 @@ class Component extends DCLogic {
     e.target.value = '';
   };
   compute() {
-    const { po, price, bill, cols, query, onlyCon, onlySup, filter } = this.state; if (!po || !price || !cols.hn || !cols.code) return [];
+    const { po, price, bill, cols, query, onlyCon, onlySup, filter, codeQ, dFrom, dTo } = this.state; const ctoks = codeQ.split(/[,;\s]+/).map(t => t.trim().toLowerCase()).filter(Boolean); if (!po || !price || !cols.hn || !cols.code) return [];
     const toks = query.split(/[,;\n]+/).map(t => t.trim().toLowerCase()).filter(Boolean).map(t => ({ t, n: this.nh(t) })); const out = [];
     for (const r of bill) {
       const hn = String(r[cols.hn] || '').trim(), pname = String(r[cols.pname] || '').trim(); if (!hn && !pname) continue;
       if (toks.length && !toks.some(k => (k.n && /\d/.test(k.t) && this.nh(hn).includes(k.n)) || pname.toLowerCase().includes(k.t))) continue;
       const code = String(r[cols.code] || '').trim(); if (!code) continue;
+      if (ctoks.length && !ctoks.some(t => code.toLowerCase().includes(t))) continue;
+      const dd = r[cols.date] instanceof Date ? r[cols.date].toISOString().slice(0, 10) : String(r[cols.date] || '').slice(0, 10);
+      if (dFrom && dd < dFrom) continue; if (dTo && dd > dTo) continue;
       const vp = price.vp[code]; const cat = cols.cat ? String(r[cols.cat] || '').trim() : (vp ? vp[2] : '');
       const isCon = cat.toUpperCase() === 'CON', isSup = cat.toUpperCase() === 'SUP' && /^65/.test(code);
       if (onlyCon || onlySup) { if (!((onlyCon && isCon) || (onlySup && isSup))) continue; } else if (!isCon && !isSup) continue;
@@ -154,7 +160,7 @@ class Component extends DCLogic {
       if (p) { poNo = p[0]; cost = p[7]; src = 'SAP PO (HN นี้)'; }
       if (filter === 'po' && !p || filter === 'nopo' && p) continue;
       let d = r[cols.date]; d = d instanceof Date ? d.toISOString().slice(0, 10) : String(d || '');
-      out.push({ key: this.nh(hn) + '|' + code + '|' + d + '|' + (r.__f || ''), hn, pname, date: d, code, item: String(r[cols.item] || (vp ? vp[0] : '')), qty: this.num(r[cols.qty]) || 1, cost, src, vendor, po: poNo, has: !!p });
+      out.push({ key: this.nh(hn) + '|' + code + '|' + d + '|' + (r.__f || ''), hn, pname, date: d, code, item: String((vp && vp[0]) || r[cols.item] || ''), qty: this.num(r[cols.qty]) || 1, cost, src, vendor, po: poNo, has: !!p });
     }
     return out;
   }
@@ -175,6 +181,15 @@ class Component extends DCLogic {
     localStorage.setItem('consign_saved', JSON.stringify(s)); this.setState({ saved: s, mergeMsg: 'รวมไฟล์แล้ว: เพิ่มใหม่ ' + add + ' · ซ้ำ ' + dup + ' รายการ' }); e.target.value = '';
   };
   saveRows(list) { const s = { ...this.state.saved }; const by = this.state.user || 'ไม่ระบุชื่อ', at = new Date().toISOString(); list.forEach(r => { s[r.key] = { ...r, by, at }; }); this.push({ action: 'upsert', rows: list.map(r => ({ ...r, by, at })) }); localStorage.setItem('consign_saved', JSON.stringify(s)); this.setState({ saved: s }); }
+  exportSap = () => {
+    const L = Object.values(this.state.saved).filter(r => !r.has); if (!L.length) { alert('ไม่มีรายการค้างจ่ายที่บันทึกไว้'); return; }
+    const uom = (this.state.price && this.state.price.uom) || {};
+    L.sort((a, b) => a.hn < b.hn ? -1 : a.hn > b.hn ? 1 : a.date < b.date ? -1 : 1);
+    const rows = L.map((r, i) => { const u = uom[r.code] || ''; return { '#': i + 1, 'Item No.': r.code, 'Item Description': (this.state.price.vp[r.code] && this.state.price.vp[r.code][0]) || r.item, 'Free Text': 'HN : ' + r.hn + ' ' + r.pname, 'Quoted Qty.': r.qty, 'UoM Code': u, 'UoM Name': u, 'Unit Price': '', 'Gross Price': r.cost || '', 'Discount %': 0, 'Price after Discount': r.cost || '', 'Tax Code': 'IGN00' }; });
+    const ws = XLSX.utils.json_to_sheet(rows); ws['!cols'] = Object.keys(rows[0]).map(k => ({ wch: Math.min(120, Math.max(k.length, ...rows.map(r => String(r[k]).length)) + 3) }));
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'SAP PO');
+    XLSX.writeFile(wb, 'SAP_PO_Consignment_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+  };
   exportXlsx = () => {
     const L = Object.values(this.state.saved); if (!L.length) return;
     const det = L.map(r => ({ HN: r.hn, 'ชื่อคนไข้': r.pname, 'วันที่': r.date, 'Item code': r.code, 'รายการ': r.item, 'จำนวน': r.qty, 'ราคาทุน': r.cost || '', 'แหล่งราคา': r.src, 'บริษัทผู้ขาย': r.vendor, 'เลข PO': r.po, 'ผู้บันทึก': r.by || '', 'เวลาบันทึก': (r.at || '').slice(0, 16).replace('T', ' '), 'สถานะ': r.has ? 'มี PO (รับทราบ)' : 'ค้างจ่าย', 'มูลค่าค้างจ่าย': r.has ? 0 : r.cost * r.qty }));
@@ -184,6 +199,7 @@ class Component extends DCLogic {
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(det), 'รายละเอียด');
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(Object.values(g)), 'สรุปรายคนไข้');
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(Object.values(m).sort((a, b) => a['เดือน'] < b['เดือน'] ? -1 : 1)), 'สรุปรายเดือน');
+    [XLSX.utils.json_to_sheet(det)].forEach(w => { wb.Sheets['รายละเอียด'] ['!cols'] = Object.keys(det[0]).map(k => ({ wch: Math.min(120, Math.max(k.length, ...det.map(r => String(r[k]).length)) + 3) })); });
     XLSX.writeFile(wb, 'Consignment_ค้างจ่าย_' + new Date().toISOString().slice(0, 10) + '.xlsx');
   };
   renderVals() {
@@ -200,6 +216,7 @@ class Component extends DCLogic {
       goCheck: () => this.setState({ tab: 'check' }), goSaved: () => this.setState({ tab: 'saved' }), checkDisp: isC ? 'flex' : 'none', savedDisp: isC ? 'none' : 'flex',
       tabCheckBg: isC ? '#0b6e69' : 'transparent', tabCheckFg: isC ? '#fff' : '#274744', tabSavedBg: isC ? 'transparent' : '#0b6e69', tabSavedFg: isC ? '#274744' : '#fff',
       api: s.api, setApi: this.setApi, syncMsg: s.syncMsg || (s.api ? '' : 'ยังไม่ได้เชื่อม Google Sheet (บันทึกในเครื่องนี้เท่านั้น)'),
+      exportSap: this.exportSap, codeQ: s.codeQ, onCodeQ: e => this.setState({ codeQ: e.target.value }), dFrom: s.dFrom, dTo: s.dTo, onFrom: e => this.setState({ dFrom: e.target.value }), onTo: e => this.setState({ dTo: e.target.value }),
       user: s.user, setUser: this.setUser, exportShare: this.exportShare, importShare: this.importShare, mergeMsg: s.mergeMsg,
       sq: s.sq, onSq: e => this.setState({ sq: e.target.value }), savedRows, savedEmpty: savedRows.length ? '' : 'ยังไม่มีรายการที่บันทึก',
       dataStatus: s.loadErr ? 'โหลดข้อมูลไม่สำเร็จ' : ready ? 'SAP PO ที่มี HN: ' + s.poN + ' รายการ · VPRICELIST: ' + Object.keys(s.price.vp).length.toLocaleString() + ' รหัส' : 'กำลังโหลดข้อมูล SAP...',
