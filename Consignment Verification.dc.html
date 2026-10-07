@@ -21,6 +21,44 @@
 <div style="display:flex;gap:4px;border-bottom:2px solid #d5e3e0">
 <button onClick="{{ goCheck }}" style="font-family:inherit;font-size:16px;font-weight:500;padding:10px 22px;border:0;background:{{ tabCheckBg }};color:{{ tabCheckFg }};border-radius:8px 8px 0 0;cursor:pointer">ตรวจสอบ</button>
 <button onClick="{{ goSaved }}" style="font-family:inherit;font-size:16px;font-weight:500;padding:10px 22px;border:0;background:{{ tabSavedBg }};color:{{ tabSavedFg }};border-radius:8px 8px 0 0;cursor:pointer">รายการที่บันทึก ({{ savedCount }})</button>
+<button onClick="{{ goReport }}" style="font-family:inherit;font-size:16px;font-weight:500;padding:10px 22px;border:0;background:{{ tabRepBg }};color:{{ tabRepFg }};border-radius:8px 8px 0 0;cursor:pointer">รายงานรายเดือน</button>
+</div>
+<div style="display:{{ reportDisp }};flex-direction:column;gap:16px">
+<section style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;padding:14px 20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;position:relative;z-index:30">
+<select onChange="{{ onRMonth }}" style="font-family:inherit;font-size:15px;padding:9px 12px;border:1px solid #9fbbb6;border-radius:8px;background:#fff;color:#17302e">
+<sc-for list="{{ repMonthOpts }}" as="o" hint-placeholder-count="2"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.t }}</option></sc-for></select>
+<select onChange="{{ onRMode }}" style="font-family:inherit;font-size:15px;padding:9px 12px;border:1px solid #9fbbb6;border-radius:8px;background:#fff;color:#17302e"><option value="nopo" selected="{{ rModeNo }}">เฉพาะค้างจ่าย (ยังไม่มี PO)</option><option value="all" selected="{{ rModeAll }}">ทุกรายการ</option></select>
+<div style="flex:1 0 100%;display:flex;gap:12px;flex-wrap:wrap;align-items:center;padding-top:12px;border-top:1px solid #e3ece9">
+<input type="text" value="{{ rQ }}" onInput="{{ onRQ }}" placeholder="ค้นหา HN / ชื่อคนไข้ / รหัส / ชื่อเวชภัณฑ์ (คั่นด้วย ,)" style="flex:1 1 300px;font-family:inherit;font-size:15px;padding:9px 12px;border:1px solid #9fbbb6;border-radius:8px;outline:none">
+<label style="display:flex;gap:8px;align-items:center;font-size:15px;border:1px solid #d5e3e0;border-radius:8px;padding:9px 14px"><input type="checkbox" checked="{{ rCon }}" onChange="{{ onRCon }}">CON</label>
+<label style="display:flex;gap:8px;align-items:center;font-size:15px;border:1px solid #d5e3e0;border-radius:8px;padding:9px 14px"><input type="checkbox" checked="{{ rSup }}" onChange="{{ onRSup }}">SUP (65)</label>
+<details style="position:relative;border:1px solid #d5e3e0;border-radius:8px"><summary style="cursor:pointer;padding:9px 14px;font-size:15px;list-style:none">{{ rLocLabel }} ▾</summary>
+<div style="position:absolute;z-index:10;top:42px;left:0;min-width:300px;max-height:320px;overflow:auto;background:#fff;border:1px solid #9fbbb6;border-radius:8px;padding:8px;box-shadow:0 6px 18px rgba(0,0,0,.12);display:flex;flex-direction:column;gap:2px">
+<button onClick="{{ clearRLocs }}" style="font-family:inherit;font-size:13px;text-align:left;border:0;background:#e8f1ef;color:#274744;border-radius:6px;padding:6px 8px;cursor:pointer">ล้างตัวเลือก (แสดงทั้งหมด)</button>
+<sc-for list="{{ rLocOpts }}" as="o" hint-placeholder-count="2"><label style="display:flex;gap:8px;align-items:center;font-size:14px;padding:5px 8px;cursor:pointer"><input type="checkbox" checked="{{ o.on }}" onChange="{{ o.toggle }}"><span style="flex:1">{{ o.name }}</span><span style="color:#4b6764;font-size:12px">{{ o.n }}</span></label></sc-for>
+</div></details>
+<span style="font-size:13px;color:#4b6764">ตัวกรองของแท็บนี้แยกจากหน้าตรวจสอบ ไม่ติ๊กเลย = CON + SUP (65)</span></div>
+<button onClick="{{ rXlsx }}" style="font-family:inherit;font-size:14px;font-weight:500;background:#fff;color:#0b6e69;border:1px solid #0b6e69;border-radius:8px;padding:9px 16px;cursor:pointer">Export รายการ (Excel)</button>
+<button onClick="{{ pdfReport }}" style="font-family:inherit;font-size:14px;font-weight:500;background:#fff;color:#0b6e69;border:1px solid #0b6e69;border-radius:8px;padding:9px 16px;cursor:pointer">บันทึก PDF</button>
+<button onClick="{{ exportReportXlsx }}" style="font-family:inherit;font-size:14px;font-weight:500;background:#0b6e69;color:#fff;border:0;border-radius:8px;padding:9px 16px;cursor:pointer">Export Excel</button>
+</section>
+<section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+<div style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;padding:14px 16px"><div style="font-size:13px;color:#4b6764">มูลค่ารวม (บาท)</div><div style="font-size:26px;font-weight:600;color:#a4501a">{{ rTotal }}</div></div>
+<div style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;padding:14px 16px"><div style="font-size:13px;color:#4b6764">จำนวนเดือน</div><div style="font-size:26px;font-weight:600">{{ rMonths }}</div></div>
+<div style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;padding:14px 16px"><div style="font-size:13px;color:#4b6764">จำนวนคนไข้</div><div style="font-size:26px;font-weight:600">{{ rPts }}</div></div>
+<div style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;padding:14px 16px"><div style="font-size:13px;color:#4b6764">จำนวนรายการ</div><div style="font-size:26px;font-weight:600">{{ rItems }}</div></div>
+</section>
+<section style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;padding:16px 20px;display:flex;flex-direction:column;gap:8px">
+<div style="font-size:16px;font-weight:600">มูลค่ารายเดือน <span style="font-size:13px;font-weight:400;color:#4b6764">(คลิกแถบเพื่อดูเฉพาะเดือน)</span></div>
+<sc-for list="{{ rBars }}" as="b" hint-placeholder-count="4">
+<div onClick="{{ b.pick }}" style="display:grid;grid-template-columns:130px 1fr 130px;gap:12px;align-items:center;cursor:pointer;font-size:14px"><div>{{ b.label }}</div><div style="background:#eef4f2;border-radius:4px;height:22px"><div style="height:22px;border-radius:4px;width:{{ b.pct }};background:{{ b.bg }}"></div></div><div style="text-align:right"><b>{{ b.val }}</b><div style="font-size:11px;color:#4b6764">{{ b.sub }}</div></div></div>
+</sc-for>
+</section>
+<section style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;overflow:hidden">
+<div style="padding:12px 16px;border-bottom:1px solid #d5e3e0;font-size:14px;color:#4b6764">สรุปรายคน แยกรายเดือน · {{ rNote }}</div>
+<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:14px"><thead><tr style="background:#e8f1ef;text-align:left;color:#274744"><th style="padding:10px 12px">เดือน</th><th style="padding:10px 12px">HN</th><th style="padding:10px 12px">ชื่อคนไข้</th><th style="padding:10px 12px;text-align:right">รายการ</th><th style="padding:10px 12px;text-align:right">ชิ้น</th><th style="padding:10px 12px;text-align:right">มูลค่า (บาท)</th></tr></thead><tbody>
+<sc-for list="{{ rRows }}" as="r" hint-placeholder-count="3"><tr style="border-top:1px solid #e3ece9"><td style="padding:9px 12px;white-space:nowrap">{{ r.month }}</td><td style="padding:9px 12px;white-space:nowrap">{{ r.hn }}</td><td style="padding:9px 12px">{{ r.name }}</td><td style="padding:9px 12px;text-align:right">{{ r.items }}</td><td style="padding:9px 12px;text-align:right">{{ r.qty }}</td><td style="padding:9px 12px;text-align:right">{{ r.val }}</td></tr></sc-for>
+</tbody></table></div></section>
 </div>
 <div style="display:{{ checkDisp }};flex-direction:column;gap:20px">
 <section style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;padding:18px 20px;display:flex;flex-direction:column;gap:14px">
@@ -39,11 +77,10 @@
 </div>
 </sc-if>
 </section>
-<section style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
-<input type="text" value="{{ query }}" onInput="{{ onQuery }}" placeholder="2. กรอก HN หรือชื่อคนไข้ (หลายคนคั่นด้วย , เช่น 24-001915, 24-001652)" style="flex:1 1 320px;font-family:inherit;font-size:16px;padding:11px 14px;border:1px solid #9fbbb6;border-radius:8px;outline:none;background:#fff">
+<section style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;position:relative;z-index:30">
+<input type="text" value="{{ query }}" onInput="{{ onQuery }}" placeholder="2. ค้นหา HN / ชื่อคนไข้ / รหัสเวชภัณฑ์ / ชื่อเวชภัณฑ์ (หลายคำคั่นด้วย ,)" style="flex:1 1 320px;font-family:inherit;font-size:16px;padding:11px 14px;border:1px solid #9fbbb6;border-radius:8px;outline:none;background:#fff">
 <label style="display:flex;gap:8px;align-items:center;font-size:15px;background:#fff;border:1px solid #d5e3e0;border-radius:8px;padding:10px 14px"><input type="checkbox" checked="{{ onlyCon }}" onChange="{{ onCon }}">CON</label>
 <label style="display:flex;gap:8px;align-items:center;font-size:15px;background:#fff;border:1px solid #d5e3e0;border-radius:8px;padding:10px 14px"><input type="checkbox" checked="{{ onlySup }}" onChange="{{ onSup }}">SUP (รหัสขึ้นต้น 65)</label>
-<input type="text" value="{{ codeQ }}" onInput="{{ onCodeQ }}" placeholder="รหัสเวชภัณฑ์ (คั่นด้วย ,)" style="flex:0 1 220px;font-family:inherit;font-size:15px;padding:10px 12px;border:1px solid #9fbbb6;border-radius:8px;outline:none;background:#fff">
 <label style="display:flex;gap:8px;align-items:center;font-size:14px;background:#fff;border:1px solid #d5e3e0;border-radius:8px;padding:6px 12px">ตั้งแต่<input type="date" value="{{ dFrom }}" onChange="{{ onFrom }}" style="font-family:inherit;font-size:14px;border:0;outline:none">ถึง<input type="date" value="{{ dTo }}" onChange="{{ onTo }}" style="font-family:inherit;font-size:14px;border:0;outline:none"></label>
 <details style="position:relative;background:#fff;border:1px solid #d5e3e0;border-radius:8px"><summary style="cursor:pointer;padding:10px 14px;font-size:15px;list-style:none">{{ locLabel }} ▾</summary>
 <div style="position:absolute;z-index:10;top:44px;left:0;min-width:300px;max-height:320px;overflow:auto;background:#fff;border:1px solid #9fbbb6;border-radius:8px;padding:8px;box-shadow:0 6px 18px rgba(0,0,0,.12);display:flex;flex-direction:column;gap:2px">
@@ -61,20 +98,26 @@
 </section>
 <section style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;overflow:hidden">
 <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #d5e3e0;flex-wrap:wrap">
-<span style="font-size:14px;color:#4b6764">{{ shownNote }}</span>
-<button onClick="{{ saveAll }}" style="font-family:inherit;font-size:14px;font-weight:500;background:#0b6e69;color:#fff;border:0;border-radius:8px;padding:8px 16px;cursor:pointer" style-hover="background:#084f4b">บันทึกทั้งหมดที่แสดง</button>
+<span style="font-size:14px;color:#4b6764">{{ shownNote }} <b style="color:#0b6e69">{{ lastRef }}</b></span>
+<div style="display:flex;gap:10px"><button onClick="{{ xlsxShown }}" style="font-family:inherit;font-size:14px;font-weight:500;background:#fff;color:#0b6e69;border:1px solid #0b6e69;border-radius:8px;padding:8px 16px;cursor:pointer">Export Excel (ที่แสดง)</button><button onClick="{{ pdfShown }}" style="font-family:inherit;font-size:14px;font-weight:500;background:#fff;color:#0b6e69;border:1px solid #0b6e69;border-radius:8px;padding:8px 16px;cursor:pointer">สรุปรายคน (PDF)</button>
+<button onClick="{{ selAll }}" style="font-family:inherit;font-size:14px;background:#fff;color:#274744;border:1px solid #b9cfcb;border-radius:8px;padding:8px 14px;cursor:pointer">เลือกทั้งหมดที่แสดง</button><button onClick="{{ selNone }}" style="font-family:inherit;font-size:14px;background:#fff;color:#274744;border:1px solid #b9cfcb;border-radius:8px;padding:8px 14px;cursor:pointer">ล้างที่เลือก</button><button onClick="{{ saveSel }}" style="font-family:inherit;font-size:14px;font-weight:500;background:#0b6e69;color:#fff;border:0;border-radius:8px;padding:8px 16px;cursor:pointer" style-hover="background:#084f4b">บันทึกที่เลือก ({{ selCount }})</button></div>
 </div>
 <div style="overflow-x:auto">
 <table style="width:100%;border-collapse:collapse;font-size:14px">
 <thead><tr style="background:#e8f1ef;text-align:left;color:#274744">
-<th style="padding:10px 12px">HN</th><th style="padding:10px 12px">ชื่อคนไข้</th><th style="padding:10px 12px">วันที่</th><th style="padding:10px 12px">Item code</th><th style="padding:10px 12px">รายการ</th><th style="padding:10px 12px;text-align:right">จำนวน</th><th style="padding:10px 12px;text-align:right">ราคาทุน (รวม VAT สำหรับ SAP)</th><th style="padding:10px 12px">แหล่งราคา</th><th style="padding:10px 12px">บริษัทผู้ขาย</th><th style="padding:10px 12px">เลข PO</th><th style="padding:10px 12px">สถานะ</th><th style="padding:10px 12px"></th>
-</tr></thead>
+<sc-for list="{{ hdrs }}" as="h" hint-placeholder-count="11"><th style="padding:0;position:relative;vertical-align:middle"><div style="display:flex;align-items:center;gap:4px;padding:10px 12px;justify-content:{{ h.just }}"><span onClick="{{ h.sort }}" style="cursor:pointer;user-select:none">{{ h.label }}{{ h.arrow }}</span><button onClick="{{ h.toggle }}" style="font-family:inherit;font-size:11px;border:1px solid #b9cfcb;background:{{ h.btnBg }};color:#274744;border-radius:4px;padding:1px 5px;cursor:pointer">▾</button></div>
+<div onClick="{{ h.toggle }}" style="display:{{ h.dd }};position:fixed;inset:0;z-index:39"></div>
+<div style="display:{{ h.dd }};position:absolute;z-index:40;top:100%;left:0;min-width:230px;max-height:280px;overflow:auto;background:#fff;border:1px solid #9fbbb6;border-radius:8px;padding:8px;box-shadow:0 6px 18px rgba(0,0,0,.15);flex-direction:column;gap:2px;font-weight:400;text-align:left">
+<button onClick="{{ h.clear }}" style="font-family:inherit;font-size:13px;text-align:left;border:0;background:#e8f1ef;color:#274744;border-radius:6px;padding:6px 8px;cursor:pointer">ล้างตัวกรองคอลัมน์นี้</button>
+<sc-for list="{{ h.opts }}" as="o" hint-placeholder-count="2"><label style="display:flex;gap:8px;align-items:center;font-size:14px;padding:4px 6px;cursor:pointer"><input type="checkbox" checked="{{ o.on }}" onChange="{{ o.toggle }}"><span style="flex:1">{{ o.label }}</span><span style="color:#4b6764;font-size:12px">{{ o.n }}</span></label></sc-for>
+</div></th></sc-for>
+<th style="padding:10px 12px"><button onClick="{{ cfClear }}" style="font-family:inherit;font-size:12px;border:1px solid #b9cfcb;background:#fff;color:#274744;border-radius:6px;padding:5px 8px;cursor:pointer;white-space:nowrap">ล้างทั้งหมด</button></th></tr></thead>
 <tbody>
 <sc-for list="{{ rows }}" as="r" hint-placeholder-count="5">
-<tr style="border-top:1px solid #e3ece9">
+<tr onClick="{{ r.open }}" style="border-top:1px solid #e3ece9;background:{{ r.rowBg }};cursor:pointer" style-hover="outline:2px solid #0b6e69;outline-offset:-2px">
 <td style="padding:9px 12px;white-space:nowrap">{{ r.hn }}</td><td style="padding:9px 12px">{{ r.pname }}</td><td style="padding:9px 12px;white-space:nowrap">{{ r.date }}</td><td style="padding:9px 12px;white-space:nowrap">{{ r.code }}</td><td style="padding:9px 12px">{{ r.item }}</td><td style="padding:9px 12px;text-align:right">{{ r.qty }}</td><td style="padding:9px 12px;text-align:right">{{ r.cost }}</td><td style="padding:9px 12px;color:#4b6764">{{ r.src }}</td><td style="padding:9px 12px">{{ r.vendor }}</td><td style="padding:9px 12px">{{ r.po }}</td>
 <td style="padding:9px 12px;white-space:nowrap"><span style="padding:3px 10px;border-radius:99px;font-size:13px;font-weight:500;background:{{ r.bg }};color:{{ r.fg }}">{{ r.status }}</span></td>
-<td style="padding:9px 12px"><button onClick="{{ r.save }}" style="font-family:inherit;font-size:13px;border:1px solid #0b6e69;color:#0b6e69;background:{{ r.btnBg }};border-radius:6px;padding:5px 12px;cursor:pointer">{{ r.btnText }}</button></td>
+<td style="padding:9px 12px;white-space:nowrap"><label onClick="{{ r.stopc }}" style="display:flex;gap:6px;align-items:center;cursor:pointer"><input type="checkbox" disabled="{{ r.locked }}" checked="{{ r.checked }}" onChange="{{ r.tog }}" style="width:18px;height:18px"><span style="font-size:12px;color:#0b6e69;font-weight:600">{{ r.refTxt }}</span></label></td>
 </tr>
 </sc-for>
 </tbody></table></div>
@@ -85,7 +128,9 @@
 <section style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
 <div><div style="font-size:16px;font-weight:600">บันทึกแล้ว {{ savedCount }} รายการ · ค้างจ่าย {{ savedAccrual }} บาท</div><div style="font-size:14px;color:#4b6764">ส่งออก Excel ให้บัญชี · ส่งไฟล์แชร์ให้ผู้ใช้อื่นรวมข้อมูล {{ mergeMsg }}</div></div>
 <div style="display:flex;gap:10px;flex-wrap:wrap">
+<label style="display:flex;gap:6px;align-items:center;font-size:14px;border:1px solid #d5e3e0;border-radius:8px;padding:8px 12px"><input type="checkbox" checked="{{ sCon }}" onChange="{{ onSCon }}">CON</label><label style="display:flex;gap:6px;align-items:center;font-size:14px;border:1px solid #d5e3e0;border-radius:8px;padding:8px 12px"><input type="checkbox" checked="{{ sSup }}" onChange="{{ onSSup }}">SUP (65)</label>
 <input type="text" value="{{ sq }}" onInput="{{ onSq }}" placeholder="ค้นหา HN / ชื่อ / บริษัท / รหัส" style="font-family:inherit;font-size:14px;padding:9px 12px;border:1px solid #9fbbb6;border-radius:8px;width:240px">
+<button onClick="{{ pdfSaved }}" style="font-family:inherit;font-size:14px;font-weight:500;background:#fff;color:#0b6e69;border:1px solid #0b6e69;border-radius:8px;padding:9px 16px;cursor:pointer">สรุปรายคน (PDF)</button>
 <button onClick="{{ exportSap }}" style="font-family:inherit;font-size:14px;font-weight:500;background:#17302e;color:#fff;border:0;border-radius:8px;padding:9px 16px;cursor:pointer">Export Excel สำหรับ SAP (PO)</button>
 <button onClick="{{ exportShare }}" style="font-family:inherit;font-size:14px;border:1px solid #0b6e69;color:#0b6e69;background:#fff;border-radius:8px;padding:9px 16px;cursor:pointer">ส่งออกไฟล์แชร์ (.json)</button>
 <label style="font-size:14px;border:1px solid #0b6e69;color:#0b6e69;background:#fff;border-radius:8px;padding:9px 16px;cursor:pointer">รวมไฟล์จากผู้ใช้อื่น<input type="file" accept=".json" multiple="multiple" onChange="{{ importShare }}" style="display:none"></label>
@@ -94,20 +139,50 @@
 </div></section>
 <section style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;overflow:hidden"><div style="overflow-x:auto">
 <table style="width:100%;border-collapse:collapse;font-size:14px">
-<thead><tr style="background:#e8f1ef;text-align:left;color:#274744"><th style="padding:10px 12px">HN</th><th style="padding:10px 12px">ชื่อคนไข้</th><th style="padding:10px 12px">วันที่</th><th style="padding:10px 12px">Item code</th><th style="padding:10px 12px">รายการ</th><th style="padding:10px 12px;text-align:right">จำนวน</th><th style="padding:10px 12px;text-align:right">ราคาทุน</th><th style="padding:10px 12px">บริษัทผู้ขาย</th><th style="padding:10px 12px">เลข PO</th><th style="padding:10px 12px">สถานะ</th><th style="padding:10px 12px">ผู้บันทึก</th><th style="padding:10px 12px"></th></tr></thead>
+<thead><tr style="background:#e8f1ef;text-align:left;color:#274744">
+<sc-for list="{{ shdrs }}" as="h" hint-placeholder-count="11"><th style="padding:0;position:relative;vertical-align:middle"><div style="display:flex;align-items:center;gap:4px;padding:10px 12px;justify-content:{{ h.just }}"><span onClick="{{ h.sort }}" style="cursor:pointer;user-select:none">{{ h.label }}{{ h.arrow }}</span><button onClick="{{ h.toggle }}" style="font-family:inherit;font-size:11px;border:1px solid #b9cfcb;background:{{ h.btnBg }};color:#274744;border-radius:4px;padding:1px 5px;cursor:pointer">▾</button></div>
+<div onClick="{{ h.toggle }}" style="display:{{ h.dd }};position:fixed;inset:0;z-index:39"></div>
+<div style="display:{{ h.dd }};position:absolute;z-index:40;top:100%;left:0;min-width:230px;max-height:280px;overflow:auto;background:#fff;border:1px solid #9fbbb6;border-radius:8px;padding:8px;box-shadow:0 6px 18px rgba(0,0,0,.15);flex-direction:column;gap:2px;font-weight:400;text-align:left">
+<button onClick="{{ h.clear }}" style="font-family:inherit;font-size:13px;text-align:left;border:0;background:#e8f1ef;color:#274744;border-radius:6px;padding:6px 8px;cursor:pointer">ล้างตัวกรองคอลัมน์นี้</button>
+<sc-for list="{{ h.opts }}" as="o" hint-placeholder-count="2"><label style="display:flex;gap:8px;align-items:center;font-size:14px;padding:4px 6px;cursor:pointer"><input type="checkbox" checked="{{ o.on }}" onChange="{{ o.toggle }}"><span style="flex:1">{{ o.label }}</span><span style="color:#4b6764;font-size:12px">{{ o.n }}</span></label></sc-for>
+</div></th></sc-for>
+<th style="padding:10px 12px"><button onClick="{{ scfClear }}" style="font-family:inherit;font-size:12px;border:1px solid #b9cfcb;background:#fff;color:#274744;border-radius:6px;padding:5px 8px;cursor:pointer;white-space:nowrap">ล้างทั้งหมด</button></th></tr></thead>
 <tbody>
 <sc-for list="{{ savedRows }}" as="r" hint-placeholder-count="3">
-<tr style="border-top:1px solid #e3ece9"><td style="padding:9px 12px;white-space:nowrap">{{ r.hn }}</td><td style="padding:9px 12px">{{ r.pname }}</td><td style="padding:9px 12px;white-space:nowrap">{{ r.date }}</td><td style="padding:9px 12px;white-space:nowrap">{{ r.code }}</td><td style="padding:9px 12px">{{ r.item }}</td><td style="padding:9px 12px;text-align:right">{{ r.qty }}</td><td style="padding:9px 12px;text-align:right">{{ r.cost }}</td><td style="padding:9px 12px">{{ r.vendor }}</td><td style="padding:9px 12px">{{ r.po }}</td>
+<tr style="border-top:1px solid #e3ece9"><td style="padding:9px 12px;white-space:nowrap;font-weight:600;color:#0b6e69">{{ r.ref }}</td><td style="padding:9px 12px;white-space:nowrap">{{ r.hn }}</td><td style="padding:9px 12px">{{ r.pname }}</td><td style="padding:9px 12px;white-space:nowrap">{{ r.date }}</td><td style="padding:9px 12px;white-space:nowrap">{{ r.code }}</td><td style="padding:9px 12px">{{ r.item }}</td><td style="padding:9px 12px;text-align:right">{{ r.qty }}</td><td style="padding:9px 12px;text-align:right">{{ r.cost }}</td><td style="padding:9px 12px">{{ r.vendor }}</td><td style="padding:9px 12px">{{ r.po }}</td>
 <td style="padding:9px 12px;white-space:nowrap"><span style="padding:3px 10px;border-radius:99px;font-size:13px;font-weight:500;background:{{ r.bg }};color:{{ r.fg }}">{{ r.status }}</span></td>
 <td style="padding:9px 12px;white-space:nowrap">{{ r.by }}</td><td style="padding:9px 12px"><button onClick="{{ r.remove }}" style="font-family:inherit;font-size:13px;border:1px solid #c9a08a;color:#7a3a10;background:#fff;border-radius:6px;padding:5px 12px;cursor:pointer">ลบ</button></td></tr>
 </sc-for></tbody></table></div>
 <div style="padding:28px;text-align:center;color:#4b6764;font-size:15px">{{ savedEmpty }}</div></section>
 </div>
-</main></div>
+</main>
+<div onClick="{{ sClose }}" style="display:{{ sDisp }};position:fixed;inset:0;background:rgba(10,40,38,.55);z-index:60;align-items:center;justify-content:center;padding:24px;box-sizing:border-box">
+<div onClick="{{ stop }}" style="background:#fff;border-radius:12px;width:min(820px,100%);max-height:100%;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.3)">
+<div style="padding:18px 24px;border-bottom:1px solid #d5e3e0;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap">
+<div><div style="font-size:20px;font-weight:600">สรุปรายคน</div><div style="font-size:15px;color:#4b6764">{{ sInfo }} · ค้างจ่ายรวม <b style="color:#a4501a">{{ sVal }}</b> บาท</div></div>
+<div style="display:flex;gap:10px;align-items:center"><button onClick="{{ sPdf }}" style="font-family:inherit;font-size:14px;font-weight:500;background:#fff;color:#0b6e69;border:1px solid #0b6e69;border-radius:8px;padding:9px 18px;cursor:pointer">บันทึก PDF</button>
+<button onClick="{{ sXlsx }}" style="font-family:inherit;font-size:14px;font-weight:500;background:#0b6e69;color:#fff;border:0;border-radius:8px;padding:9px 18px;cursor:pointer">Export Excel</button>
+<button onClick="{{ sClose }}" style="font-family:inherit;font-size:18px;background:#e8f1ef;color:#274744;border:0;border-radius:8px;width:38px;height:38px;cursor:pointer">✕</button></div></div>
+<div style="overflow:auto"><table style="width:100%;border-collapse:collapse;font-size:14px"><thead><tr style="background:#e8f1ef;text-align:left;color:#274744;position:sticky;top:0"><th style="padding:10px 12px">HN</th><th style="padding:10px 12px">ชื่อคนไข้</th><th style="padding:10px 12px;text-align:right">รายการ</th><th style="padding:10px 12px;text-align:right">ค้างจ่าย (รายการ)</th><th style="padding:10px 12px;text-align:right">มูลค่าค้างจ่าย (บาท)</th></tr></thead><tbody>
+<sc-for list="{{ sRows }}" as="r" hint-placeholder-count="3"><tr style="border-top:1px solid #e3ece9"><td style="padding:9px 12px;white-space:nowrap">{{ r.hn }}</td><td style="padding:9px 12px">{{ r.name }}</td><td style="padding:9px 12px;text-align:right">{{ r.n }}</td><td style="padding:9px 12px;text-align:right">{{ r.no }}</td><td style="padding:9px 12px;text-align:right">{{ r.val }}</td></tr></sc-for>
+</tbody></table><div style="padding:12px;text-align:center;font-size:13px;color:#4b6764">{{ sMore }}</div></div></div></div>
+<div onClick="{{ close }}" style="display:{{ dDisp }};position:fixed;inset:0;background:rgba(10,40,38,.55);z-index:50;align-items:center;justify-content:center;padding:24px;box-sizing:border-box">
+<div onClick="{{ stop }}" style="background:#fff;border-radius:12px;width:min(1100px,100%);max-height:100%;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.3)">
+<div style="padding:18px 24px;border-bottom:1px solid #d5e3e0;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap">
+<div><div style="font-size:20px;font-weight:600">{{ dName }}</div><div style="font-size:15px;color:#4b6764">HN {{ dHn }} · {{ dSum }}</div></div>
+<div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div style="text-align:right"><div style="font-size:12px;color:#4b6764">ค้างจ่ายรวม (บาท)</div><div style="font-size:24px;font-weight:600;color:#a4501a">{{ dVal }}</div></div>
+<label style="display:flex;gap:6px;align-items:center;font-size:14px;border:1px solid #d5e3e0;border-radius:8px;padding:7px 12px"><input type="checkbox" checked="{{ dCon }}" onChange="{{ onDCon }}">CON</label><label style="display:flex;gap:6px;align-items:center;font-size:14px;border:1px solid #d5e3e0;border-radius:8px;padding:7px 12px"><input type="checkbox" checked="{{ dSup }}" onChange="{{ onDSup }}">SUP (65)</label>
+<button onClick="{{ dXlsx }}" style="font-family:inherit;font-size:14px;font-weight:500;background:#fff;color:#0b6e69;border:1px solid #0b6e69;border-radius:8px;padding:8px 14px;cursor:pointer">Excel</button>
+<button onClick="{{ dPdf }}" style="font-family:inherit;font-size:14px;font-weight:500;background:#fff;color:#0b6e69;border:1px solid #0b6e69;border-radius:8px;padding:8px 14px;cursor:pointer">PDF</button>
+<button onClick="{{ dSelAll }}" style="font-family:inherit;font-size:14px;background:#fff;color:#274744;border:1px solid #b9cfcb;border-radius:8px;padding:8px 14px;cursor:pointer">เลือกทั้งหมด</button><button onClick="{{ dSaveSel }}" style="font-family:inherit;font-size:14px;font-weight:500;background:#0b6e69;color:#fff;border:0;border-radius:8px;padding:8px 14px;cursor:pointer">บันทึกที่เลือก ({{ dSelCount }})</button>
+<button onClick="{{ close }}" style="font-family:inherit;font-size:18px;background:#e8f1ef;color:#274744;border:0;border-radius:8px;width:38px;height:38px;cursor:pointer">✕</button></div></div>
+<div style="overflow:auto"><table style="width:100%;border-collapse:collapse;font-size:14px"><thead><tr style="background:#e8f1ef;text-align:left;color:#274744;position:sticky;top:0"><th style="padding:10px 12px">วันที่</th><th style="padding:10px 12px">Item code</th><th style="padding:10px 12px">รายการ</th><th style="padding:10px 12px;text-align:right">จำนวน</th><th style="padding:10px 12px;text-align:right">ราคาทุน</th><th style="padding:10px 12px">แหล่งราคา</th><th style="padding:10px 12px">บริษัทผู้ขาย</th><th style="padding:10px 12px">เลข PO</th><th style="padding:10px 12px">สถานะ</th><th style="padding:10px 12px"></th></tr></thead><tbody>
+<sc-for list="{{ dRowsV }}" as="r" hint-placeholder-count="3"><tr style="border-top:1px solid #e3ece9;background:{{ r.rowBg }}"><td style="padding:9px 12px;white-space:nowrap">{{ r.date }}</td><td style="padding:9px 12px;white-space:nowrap">{{ r.code }}</td><td style="padding:9px 12px">{{ r.item }}</td><td style="padding:9px 12px;text-align:right">{{ r.qty }}</td><td style="padding:9px 12px;text-align:right">{{ r.cost }}</td><td style="padding:9px 12px;color:#4b6764">{{ r.src }}</td><td style="padding:9px 12px">{{ r.vendor }}</td><td style="padding:9px 12px">{{ r.po }}</td><td style="padding:9px 12px;white-space:nowrap"><span style="padding:3px 10px;border-radius:99px;font-size:13px;font-weight:500;background:{{ r.bg }};color:{{ r.fg }}">{{ r.status }}</span></td><td style="padding:9px 12px;white-space:nowrap"><label style="display:flex;gap:6px;align-items:center;cursor:pointer"><input type="checkbox" disabled="{{ r.locked }}" checked="{{ r.checked }}" onChange="{{ r.tog }}" style="width:18px;height:18px"><span style="font-size:12px;color:#0b6e69;font-weight:600">{{ r.refTxt }}</span></label></td></tr></sc-for>
+</tbody></table></div></div></div></div>
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  state = { locs: [], codeQ: '', dFrom: '', dTo: '', onlySup: false, api: localStorage.getItem('consign_api') || 'https://script.google.com/macros/s/AKfycbz61GyfTxjSoxCoRyKGxqiU5PfRzsNkwKl9kGarV4nm5wVLQE9mnjd--vrw7c8gDumZ/exec', syncMsg: '', user: localStorage.getItem('consign_user') || '', mergeMsg: '', tab: 'check', sq: '', po: null, price: null, bill: [], cols: {}, headers: [], query: '', onlyCon: true, filter: 'all', saved: {}, fileMsg: '', loadErr: '' };
+  state = { sel: {}, lastRef: '', scf: {}, ssort: null, scolOpen: '', colOpen: '', sort: null, cf: {}, sCon: false, sSup: false, dCon: false, dSup: false, rQ: '', rCon: false, rSup: false, rLocs: [], rMonth: '', rMode: 'nopo', locs: [], codeQ: '', dFrom: '', dTo: '', onlySup: false, api: localStorage.getItem('consign_api') || 'https://script.google.com/macros/s/AKfycbz61GyfTxjSoxCoRyKGxqiU5PfRzsNkwKl9kGarV4nm5wVLQE9mnjd--vrw7c8gDumZ/exec', syncMsg: '', user: localStorage.getItem('consign_user') || '', mergeMsg: '', tab: 'check', sq: '', po: null, price: null, bill: [], cols: {}, headers: [], query: '', onlyCon: true, filter: 'all', saved: {}, fileMsg: '', loadErr: '' };
   componentDidMount() {
     this.sync(); this.timer = setInterval(this.sync, 20000);
     try { const s = JSON.parse(localStorage.getItem('consign_saved') || '{}'); this.setState({ saved: s }); } catch (e) {}
@@ -144,18 +219,103 @@ class Component extends DCLogic {
     const h = [...headers]; this.setState({ bill: all, headers: h, cols: this.detect(h), fileMsg: names.length + ' ไฟล์ · ' + all.length.toLocaleString() + ' แถว' });
     e.target.value = '';
   };
-  compute() {
-    const { po, price, bill, cols, query, onlyCon, onlySup, filter, codeQ, dFrom, dTo } = this.state; const locs = this.state.locs || []; const ctoks = codeQ.split(/[,;\s]+/).map(t => t.trim().toLowerCase()).filter(Boolean); if (!po || !price || !cols.hn || !cols.code) return [];
+  mlabel(m) { return /^\d{4}-\d{2}$/.test(m) ? new Date(m + '-01').toLocaleDateString('th-TH', { month: 'long', year: 'numeric' }) : m; }
+  report() {
+    const s = this.state, key = [s.bill, s.rMode, s.po, s.price, JSON.stringify(s.cols), s.rQ, s.rCon, s.rSup, (s.rLocs || []).join('|')];
+    if (this._rk && this._rk.every((v, i) => v === key[i])) return this._rv(s);
+    const rows = this.compute({ query: s.rQ || '', filter: 'all', codeQ: '', dFrom: '', dTo: '', locs: s.rLocs || [], onlyCon: !!s.rCon, onlySup: !!s.rSup }).filter(r => s.rMode === 'all' || !r.has);
+    const M = {}, P = {};
+    rows.forEach(r => {
+      const m = (r.date || '').slice(0, 7) || 'ไม่ระบุ', v = r.has ? 0 : r.cost * r.qty;
+      const a = M[m] = M[m] || { m, items: 0, qty: 0, val: 0, po: 0, pts: new Set() }; a.items++; a.qty += r.qty; a.val += v; if (r.has) a.po++; a.pts.add(r.hn);
+      const k = m + '|' + r.hn; const p = P[k] = P[k] || { m, hn: r.hn, name: r.pname, items: 0, qty: 0, val: 0, rows: [] }; p.items++; p.qty += r.qty; p.val += v; p.rows.push(r);
+    });
+    const months = Object.values(M).sort((a, b) => a.m < b.m ? -1 : 1);
+    const pats = Object.values(P).sort((a, b) => a.m < b.m ? -1 : a.m > b.m ? 1 : b.val - a.val);
+    this._rk = key;
+    this._rv = (st) => ({ rows, months, pats, selM: st.rMonth ? months.filter(x => x.m === st.rMonth) : months, selP: st.rMonth ? pats.filter(p => p.m === st.rMonth) : pats });
+    return this._rv(s);
+  }
+  exportReportXlsx = () => {
+    const R = this.report(); if (!R.selP.length) { alert('ไม่มีข้อมูล'); return; }
+    const wb = XLSX.utils.book_new(), add = (name, data) => { const ws = XLSX.utils.json_to_sheet(data); ws['!cols'] = Object.keys(data[0]).map(k => ({ wch: Math.min(80, Math.max(k.length, ...data.map(r => String(r[k]).length)) + 3) })); XLSX.utils.book_append_sheet(wb, ws, name); };
+    add('สรุปรายเดือน', R.selM.map(x => ({ 'เดือน': this.mlabel(x.m), 'จำนวนคนไข้': x.pts.size, 'จำนวนรายการ': x.items, 'จำนวนชิ้น': x.qty, 'มี PO แล้ว (รายการ)': x.po, 'ค้างจ่าย (รายการ)': x.items - x.po, 'มูลค่าค้างจ่าย (บาท)': Math.round(x.val * 100) / 100 })));
+    add('รายคน-รายเดือน', R.selP.map(p => ({ 'เดือน': this.mlabel(p.m), HN: p.hn, 'ชื่อคนไข้': p.name, 'จำนวนรายการ': p.items, 'จำนวนชิ้น': p.qty, 'มูลค่าค้างจ่าย (บาท)': Math.round(p.val * 100) / 100 })));
+    add('รายละเอียด', R.selP.flatMap(p => p.rows.map(r => ({ 'เดือน': this.mlabel(p.m), HN: r.hn, 'ชื่อคนไข้': r.pname, 'วันที่': r.date, 'Item code': r.code, 'รายการ': r.item, 'จำนวน': r.qty, 'ราคาทุน': r.cost || '', 'บริษัทผู้ขาย': r.vendor, 'เลข PO': r.po, 'สถานะ': r.has ? 'มี PO (รับทราบ)' : 'ค้างจ่าย', 'มูลค่าค้างจ่าย': r.has ? 0 : r.cost * r.qty }))));
+    XLSX.writeFile(wb, 'รายงานค้างจ่ายรายเดือน_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+  };
+  pdfReport = () => {
+    const R = this.report(); if (!R.selP.length) { alert('ไม่มีข้อมูล'); return; }
+    const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const mx = Math.max(...R.selM.map(x => x.val), 1), tot = R.selM.reduce((a, x) => a + x.val, 0);
+    const today = new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+    const sum = `<section><h2>รายงานค่าใช้จ่ายค้างจ่าย Consignment รายเดือน</h2><div class="meta"><div>พิมพ์เมื่อ ${today}</div><div>${this.state.rMode === 'all' ? 'ทุกรายการ' : 'เฉพาะรายการค้างจ่าย (ยังไม่มี PO)'}</div><div class="tot">รวม <b>${this.fmt(tot)}</b> บาท</div></div>
+<table><thead><tr><th>เดือน</th><th class="n">คนไข้</th><th class="n">รายการ</th><th class="n">ชิ้น</th><th class="n">มูลค่าค้างจ่าย (บาท)</th><th style="width:38%"></th></tr></thead><tbody>${R.selM.map(x => `<tr><td>${esc(this.mlabel(x.m))}</td><td class="n">${x.pts.size}</td><td class="n">${x.items}</td><td class="n">${x.qty}</td><td class="n">${this.fmt(x.val)}</td><td><div style="background:#0b6e69;height:12px;width:${Math.max(1, x.val / mx * 100)}%"></div></td></tr>`).join('')}</tbody></table></section>`;
+    const det = R.selM.map(x => { const ps = R.selP.filter(p => p.m === x.m); return `<section><h2>${esc(this.mlabel(x.m))} · สรุปรายคน</h2><div class="meta"><div>${x.pts.size} คน</div><div>${x.items} รายการ</div><div class="tot">ค้างจ่าย <b>${this.fmt(x.val)}</b> บาท</div></div>
+<table><thead><tr><th>#</th><th>HN</th><th>ชื่อคนไข้</th><th class="n">รายการ</th><th class="n">ชิ้น</th><th class="n">มูลค่าค้างจ่าย (บาท)</th></tr></thead><tbody>${ps.map((p, i) => `<tr><td>${i + 1}</td><td>${esc(p.hn)}</td><td>${esc(p.name)}</td><td class="n">${p.items}</td><td class="n">${p.qty}</td><td class="n">${this.fmt(p.val)}</td></tr>`).join('')}</tbody></table></section>`; }).join('');
+    const html = `<!doctype html><html><head><meta charset="utf-8"><title>รายงานรายเดือน</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;600&display=swap"><style>@page{size:A4;margin:12mm}body{font-family:'IBM Plex Sans Thai',sans-serif;color:#17302e;font-size:12px;margin:0}section{page-break-after:always}section:last-child{page-break-after:auto}h2{font-size:18px;margin:0 0 8px;color:#0b4f4b}.meta{display:flex;gap:24px;font-size:13px;margin-bottom:10px}table{width:100%;border-collapse:collapse}th{background:#e8f1ef;text-align:left}th,td{border:1px solid #c5d6d2;padding:4px 6px}.n{text-align:right;white-space:nowrap}tr{page-break-inside:avoid}.tot b{color:#a4501a;font-size:15px}</style></head><body>${sum}${det}</body></html>`;
+    const f = document.createElement('iframe'); f.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0'; document.body.appendChild(f);
+    f.srcdoc = html; f.onload = () => setTimeout(() => { f.contentWindow.focus(); f.contentWindow.print(); setTimeout(() => f.remove(), 60000); }, 800);
+  };
+  colVal(r, k) { return k === 'status' ? (r.has ? 'มี PO · รับทราบ' : 'ค้างจ่าย') : k === 'cost' ? (r.cost ? this.fmt(r.cost) : '') : String(r[k] == null ? '' : r[k]); }
+  filtered() {
+    const cf = this.state.cf || {}, ks = Object.keys(cf).filter(k => (cf[k] || []).length);
+    const rows = this.compute(); if (!ks.length) return rows;
+    return rows.filter(r => ks.every(k => cf[k].includes(this.colVal(r, k))));
+  }
+  headerVals(kind) {
+    const s = this.state, sv = kind === 'saved';
+    const P = sv ? { cf: 'scf', so: 'ssort', op: 'scolOpen', tab: 'saved', rows: () => this.savedList(true), D: [['ref', 'Ref'], ['hn', 'HN'], ['pname', 'ชื่อคนไข้'], ['date', 'วันที่'], ['code', 'Item code'], ['item', 'รายการ'], ['qty', 'จำนวน', 1], ['cost', 'ราคาทุน', 1], ['vendor', 'บริษัทผู้ขาย'], ['po', 'เลข PO'], ['status', 'สถานะ'], ['by', 'ผู้บันทึก']] }
+      : { cf: 'cf', so: 'sort', op: 'colOpen', tab: 'check', rows: () => this.compute(), D: [['hn', 'HN'], ['pname', 'ชื่อคนไข้'], ['date', 'วันที่'], ['code', 'Item code'], ['item', 'รายการ'], ['qty', 'จำนวน', 1], ['cost', 'ราคาทุน (รวม VAT สำหรับ SAP)', 1], ['src', 'แหล่งราคา'], ['vendor', 'บริษัทผู้ขาย'], ['po', 'เลข PO'], ['status', 'สถานะ']] };
+    const cf = s[P.cf] || {}, open = s[P.op], so = s[P.so];
+    return P.D.map(([k, label, num]) => {
+      const sel = cf[k] || [], isOpen = open === k; let opts = [];
+      if (isOpen && s.tab === P.tab) { const c = {}; P.rows().forEach(r => { const v = this.colVal(r, k); c[v] = (c[v] || 0) + 1; }); opts = Object.keys(c).sort((a, b) => a.localeCompare(b, 'th', { numeric: true })).slice(0, 300).map(v => ({ label: v === '' ? '(ว่าง)' : v, n: c[v].toLocaleString(), on: sel.includes(v), toggle: () => { const cur = (this.state[P.cf] || {})[k] || []; this.setState({ [P.cf]: { ...(this.state[P.cf] || {}), [k]: cur.includes(v) ? cur.filter(x => x !== v) : cur.concat(v) } }); } })); }
+      return { label, just: num ? 'flex-end' : 'flex-start', arrow: so && so.k === k ? (so.dir > 0 ? ' ▲' : ' ▼') : '', sort: () => this.setState({ [P.so]: so && so.k === k ? (so.dir > 0 ? { k, dir: -1 } : null) : { k, dir: 1 } }),
+        toggle: () => this.setState({ [P.op]: isOpen ? '' : k }), btnBg: sel.length ? '#0b6e69' : '#fff', dd: isOpen ? 'flex' : 'none', opts, clear: () => this.setState({ [P.cf]: { ...(this.state[P.cf] || {}), [k]: [] } }) };
+    });
+  }
+  savedView() { const so = this.state.ssort; return this.savedList().sort((a, b) => { if (!so) return a.hn < b.hn ? -1 : a.hn > b.hn ? 1 : a.date < b.date ? -1 : 1; const num = so.k === 'qty' || so.k === 'cost'; return so.dir * (num ? a[so.k] - b[so.k] : this.colVal(a, so.k).localeCompare(this.colVal(b, so.k), 'th', { numeric: true })); }); }
+  catOf(r) { return r.cat || ((this.state.price && this.state.price.vp[r.code]) || [])[2] || ''; }
+  catOk(r, con, sup) { if (!con && !sup) return true; const c = this.catOf(r); return (con && c === 'CON') || (sup && c === 'SUP'); }
+  savedList(skip) { const s = this.state, sq = s.sq.trim().toLowerCase(), cf = skip ? {} : (s.scf || {}), ks = Object.keys(cf).filter(k => (cf[k] || []).length); return Object.values(s.saved).filter(r => ks.every(k => cf[k].includes(this.colVal(r, k)))).filter(r => this.catOk(r, s.sCon, s.sSup) && (!sq || [r.ref, r.hn, r.pname, r.vendor, r.code, r.item].join(' ').toLowerCase().includes(sq))); }
+  exportList(list, name) {
+    if (!list.length) { alert('ไม่มีรายการ'); return; }
+    const data = list.map(r => ({ Ref: r.ref || '', HN: r.hn, 'ชื่อคนไข้': r.pname, 'วันที่': r.date, 'Category': this.catOf(r), 'Item code': r.code, 'รายการ': (this.state.price.vp[r.code] && this.state.price.vp[r.code][0]) || r.item, 'จำนวน': r.qty, 'ราคาทุน': r.cost || '', 'แหล่งราคา': r.src || '', 'บริษัทผู้ขาย': r.vendor || '', 'เลข PO': r.po || '', 'สถานะ': r.has ? 'มี PO (รับทราบ)' : 'ค้างจ่าย', 'มูลค่าค้างจ่าย': r.has ? 0 : r.cost * r.qty }));
+    const ws = XLSX.utils.json_to_sheet(data); ws['!cols'] = Object.keys(data[0]).map(k => ({ wch: Math.min(100, Math.max(k.length, ...data.slice(0, 2000).map(r => String(r[k]).length)) + 3) }));
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'รายการ'); XLSX.writeFile(wb, name + '_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+  }
+  openDetail(hn, name) {
+    const k = this.nh(hn);
+    const rows = this.compute({ query: '', filter: 'all', codeQ: '', dFrom: '', dTo: '', locs: [], onlyCon: false, onlySup: false }).filter(r => this.nh(r.hn) === k).sort((a, b) => a.date < b.date ? -1 : 1);
+    this.setState({ dHn: hn, dName: name, dRows: rows });
+  }
+  detailVals() {
+    const s = this.state, open = !!s.dHn, R = (s.dRows || []).filter(r => this.catOk(r, s.dCon, s.dSup));
+    const no = R.filter(r => !r.has), val = no.reduce((a, r) => a + r.cost * r.qty, 0);
+    return {
+      dCon: s.dCon, dSup: s.dSup, onDCon: e => this.setState({ dCon: e.target.checked }), onDSup: e => this.setState({ dSup: e.target.checked }), dXlsx: () => this.exportList(R, 'รายละเอียด_' + s.dHn),
+      sCon: s.sCon, sSup: s.sSup, onSCon: e => this.setState({ sCon: e.target.checked }), onSSup: e => this.setState({ sSup: e.target.checked }),
+      xlsxShown: () => this.exportList(this.filtered(), 'ตรวจสอบ_Consignment'), cfClear: () => this.setState({ cf: {}, sort: null }), hdrs: this.headerVals(), shdrs: this.headerVals('saved'), scfClear: () => this.setState({ scf: {}, ssort: null }),
+      stop: (e) => e.stopPropagation(), dDisp: open ? 'flex' : 'none', dHn: s.dHn || '', dName: s.dName || '', close: () => this.setState({ dHn: '', dRows: [] }),
+      dSum: R.length + ' รายการ · มี PO ' + (R.length - no.length) + ' · ค้างจ่าย ' + no.length, dVal: this.fmt(val),
+      dSelCount: R.filter(r => s.sel[r.key] && !s.saved[r.key]).length, dSelAll: () => { const n = { ...s.sel }; R.forEach(r => { if (!s.saved[r.key]) n[r.key] = true; }); this.setState({ sel: n }); },
+      dSaveSel: () => { const l = R.filter(r => s.sel[r.key] && !s.saved[r.key]); if (!l.length) { alert('ยังไม่ได้ติ๊กเลือกรายการ'); return; } this.saveRows(l); }, dPdf: () => this.printPatients(R, 'สรุป ' + s.dHn),
+      dRowsV: R.map(r => { const sv = !!s.saved[r.key]; return { ...r, locked: sv, checked: sv || !!s.sel[r.key], refTxt: sv ? s.saved[r.key].ref || '' : '', tog: () => this.setState({ sel: { ...this.state.sel, [r.key]: !this.state.sel[r.key] } }), cost: r.cost ? this.fmt(r.cost) : '', status: r.has ? 'มี PO · รับทราบ' : 'ค้างจ่าย', bg: r.has ? '#d9efe9' : '#f8e3d3', fg: r.has ? '#0b4f4b' : '#7a3a10', rowBg: r.has ? '#fff' : '#fff', btnText: sv ? 'บันทึกแล้ว' : 'บันทึก', btnBg: sv ? '#d9efe9' : '#fff', save: () => this.saveRows([r]) }; })
+    };
+  }
+  compute(ovr) {
+    const { po, price, bill, cols, query, onlyCon, onlySup, filter, codeQ, dFrom, dTo } = { ...this.state, ...(ovr || {}) }; const locs = (ovr && ovr.locs) || this.state.locs || []; const ctoks = codeQ.split(/[,;\s]+/).map(t => t.trim().toLowerCase()).filter(Boolean); if (!po || !price || !cols.hn || !cols.code) return [];
     const toks = query.split(/[,;\n]+/).map(t => t.trim().toLowerCase()).filter(Boolean).map(t => ({ t, n: this.nh(t) })); const out = [];
     for (const r of bill) {
       const hn = String(r[cols.hn] || '').trim(), pname = String(r[cols.pname] || '').trim(); if (!hn && !pname) continue;
-      if (toks.length && !toks.some(k => (k.n && /\d/.test(k.t) && this.nh(hn).includes(k.n)) || pname.toLowerCase().includes(k.t))) continue;
+
       const code = String(r[cols.code] || '').trim(); if (!code) continue;
       if (locs.length && !locs.includes(String(r[cols.loc] || '').trim())) continue;
-      if (ctoks.length && !ctoks.some(t => code.toLowerCase().includes(t))) continue;
       const dd = r[cols.date] instanceof Date ? r[cols.date].toISOString().slice(0, 10) : String(r[cols.date] || '').slice(0, 10);
       if (dFrom && dd < dFrom) continue; if (dTo && dd > dTo) continue;
-      const vp = price.vp[code]; const cat = cols.cat ? String(r[cols.cat] || '').trim() : (vp ? vp[2] : '');
+      const vp = price.vp[code];
+      if (toks.length) { const nm = ((vp && vp[0]) || String(r[cols.item] || '')).toLowerCase(), cl = code.toLowerCase(), pl = pname.toLowerCase(), hnn = this.nh(hn); if (!toks.some(k => pl.includes(k.t) || nm.includes(k.t) || cl.includes(k.t) || (k.n && /\d/.test(k.t) && hnn.includes(k.n)))) continue; } const cat = cols.cat ? String(r[cols.cat] || '').trim() : (vp ? vp[2] : '');
       const isCon = cat.toUpperCase() === 'CON', isSup = cat.toUpperCase() === 'SUP' && /^65/.test(code);
       if (onlyCon || onlySup) { if (!((onlyCon && isCon) || (onlySup && isSup))) continue; } else if (!isCon && !isSup) continue;
       const p = po[this.nh(hn) + '|' + code];
@@ -166,13 +326,13 @@ class Component extends DCLogic {
       if (p) { poNo = p[0]; cost = p[7]; src = 'SAP PO (HN นี้)'; }
       if (filter === 'po' && !p || filter === 'nopo' && p) continue;
       let d = r[cols.date]; d = d instanceof Date ? d.toISOString().slice(0, 10) : String(d || '');
-      out.push({ key: this.nh(hn) + '|' + code + '|' + d + '|' + (r.__f || ''), hn, pname, date: d, code, item: String((vp && vp[0]) || r[cols.item] || ''), qty: this.num(r[cols.qty]) || 1, cost, src, vendor, po: poNo, has: !!p });
+      out.push({ cat: isSup ? 'SUP' : 'CON', key: this.nh(hn) + '|' + code + '|' + d + '|' + (r.__f || ''), hn, pname, date: d, code, item: String((vp && vp[0]) || r[cols.item] || ''), qty: this.num(r[cols.qty]) || 1, cost, src, vendor, po: poNo, has: !!p });
     }
     return out;
   }
   api() { return (this.state.api || '').trim(); }
   setApi = (e) => { localStorage.setItem('consign_api', e.target.value); this.setState({ api: e.target.value }, () => this.sync()); };
-  applyRemote(j) { const s = {}; (j.rows || []).forEach(r => { r.hn = String(r.hn); r.code = String(r.code); r.qty = this.num(r.qty); r.cost = this.num(r.cost); s[r.key] = r; }); localStorage.setItem('consign_saved', JSON.stringify(s)); this.setState({ saved: s, syncMsg: 'ซิงก์กับ Google Sheet ล่าสุด ' + new Date().toLocaleTimeString('th-TH') }); }
+  applyRemote(j) { const s = {}; (j.rows || []).forEach(r => { r.hn = String(r.hn); r.code = String(r.code); r.qty = this.num(r.qty); r.cost = this.num(r.cost); if (!r.ref && this.state.saved[r.key] && this.state.saved[r.key].ref) r.ref = this.state.saved[r.key].ref; s[r.key] = r; }); localStorage.setItem('consign_saved', JSON.stringify(s)); this.setState({ saved: s, ...(j.ref ? { lastRef: j.ref + (this.state.lastRef ? '' : '') } : {}), syncMsg: 'ซิงก์กับ Google Sheet ล่าสุด ' + new Date().toLocaleTimeString('th-TH') }); }
   sync = () => { const u = this.api(); if (!u) { this.setState({ syncMsg: '' }); return; } fetch(u).then(r => r.json()).then(j => j.ok ? this.applyRemote(j) : Promise.reject(j.error)).catch(e => this.setState({ syncMsg: 'ซิงก์ไม่สำเร็จ: ' + e })); };
   push(body) { const u = this.api(); if (!u) return; this.setState({ syncMsg: 'กำลังส่งข้อมูล...' }); fetch(u, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) }).then(r => r.json()).then(j => j.ok ? this.applyRemote(j) : Promise.reject(j.error)).catch(e => this.setState({ syncMsg: 'ส่งข้อมูลไม่สำเร็จ: ' + e })); }
   componentWillUnmount() { clearInterval(this.timer); }
@@ -186,9 +346,52 @@ class Component extends DCLogic {
     for (const f of fs) { try { const j = JSON.parse(await f.text()); (j.rows || []).forEach(r => { if (s[r.key]) { dup++; if ((r.at || '') > (s[r.key].at || '')) s[r.key] = r; } else { s[r.key] = r; add++; } }); } catch (x) {} }
     localStorage.setItem('consign_saved', JSON.stringify(s)); this.setState({ saved: s, mergeMsg: 'รวมไฟล์แล้ว: เพิ่มใหม่ ' + add + ' · ซ้ำ ' + dup + ' รายการ' }); e.target.value = '';
   };
-  saveRows(list) { const s = { ...this.state.saved }; const by = this.state.user || 'ไม่ระบุชื่อ', at = new Date().toISOString(); list.forEach(r => { s[r.key] = { ...r, by, at }; }); this.push({ action: 'upsert', rows: list.map(r => ({ ...r, by, at })) }); localStorage.setItem('consign_saved', JSON.stringify(s)); this.setState({ saved: s }); }
+  nextRef() { const n = Object.values(this.state.saved).map(r => parseInt(String(r.ref || '').replace(/\D/g, ''), 10) || 0); return 'C' + String(Math.max(0, ...n) + 1).padStart(4, '0'); }
+  saveRows(list) {
+    list = list.filter(r => !this.state.saved[r.key]); if (!list.length) return;
+    const s = { ...this.state.saved }, by = this.state.user || 'ไม่ระบุชื่อ', at = new Date().toISOString(), ref = this.nextRef();
+    list.forEach(r => { s[r.key] = { ...r, by, at, ref }; });
+    this.push({ action: 'upsert', batchRef: true, rows: list.map(r => ({ ...r, by, at, ref })) });
+    localStorage.setItem('consign_saved', JSON.stringify(s)); this.setState({ saved: s, sel: {}, lastRef: ref + ' · ' + list.length + ' รายการ' });
+  }
+  printPatients(list, title) {
+    if (!list.length) { alert('ไม่มีรายการ'); return; }
+    const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const g = {}; list.forEach(r => { (g[r.hn] = g[r.hn] || { hn: r.hn, name: r.pname, rows: [] }).rows.push(r); });
+    const today = new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+    const pages = Object.values(g).sort((a, b) => a.hn < b.hn ? -1 : 1).map(p => {
+      p.rows.sort((a, b) => a.date < b.date ? -1 : 1);
+      const no = p.rows.filter(r => !r.has), tot = no.reduce((a, r) => a + r.cost * r.qty, 0);
+      const tr = p.rows.map((r, i) => `<tr><td>${i + 1}</td><td>${esc(r.ref)}</td><td>${esc(r.date)}</td><td>${esc(r.code)}</td><td>${esc(r.item)}</td><td class="n">${r.qty}</td><td class="n">${r.cost ? this.fmt(r.cost) : '-'}</td><td class="n">${r.cost ? this.fmt(r.cost * r.qty) : '-'}</td><td>${esc(r.vendor)}</td><td>${esc(r.po)}</td><td class="${r.has ? 'ok' : 'no'}">${r.has ? 'มี PO' : 'ค้างจ่าย'}</td></tr>`).join('');
+      return `<section><h2>สรุปรายการ Consignment รายผู้ป่วย</h2><div class="meta"><div><b>HN</b> ${esc(p.hn)}</div><div><b>ชื่อ</b> ${esc(p.name)}</div><div><b>วันที่พิมพ์</b> ${today}</div></div>
+<table><thead><tr><th>#</th><th>Ref</th><th>วันที่</th><th>Item code</th><th>รายการ</th><th class="n">จำนวน</th><th class="n">ราคาทุน</th><th class="n">รวม</th><th>บริษัทผู้ขาย</th><th>เลข PO</th><th>สถานะ</th></tr></thead><tbody>${tr}</tbody></table>
+<div class="sum"><div>ทั้งหมด ${p.rows.length} รายการ · มี PO แล้ว ${p.rows.length - no.length} · ค้างจ่าย ${no.length}</div><div class="tot">ค่าใช้จ่ายค้างจ่าย <b>${this.fmt(tot)}</b> บาท</div></div></section>`;
+    }).join('');
+    const gt = list.filter(r => !r.has).reduce((a, r) => a + r.cost * r.qty, 0);
+    const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;600&display=swap"><style>@page{size:A4 landscape;margin:12mm}body{font-family:'IBM Plex Sans Thai',sans-serif;color:#17302e;font-size:12px;margin:0}section{page-break-after:always}section:last-child{page-break-after:auto}h2{font-size:18px;margin:0 0 8px;color:#0b4f4b}.meta{display:flex;gap:28px;font-size:14px;margin-bottom:10px}table{width:100%;border-collapse:collapse}th{background:#e8f1ef;text-align:left}th,td{border:1px solid #c5d6d2;padding:4px 6px;vertical-align:top}.n{text-align:right;white-space:nowrap}.ok{color:#0b4f4b}.no{color:#a4501a;font-weight:600}tr{page-break-inside:avoid}.sum{display:flex;justify-content:space-between;margin-top:10px;font-size:13px}.tot{font-size:15px}.tot b{color:#a4501a}</style></head><body>${pages}</body></html>`;
+    const f = document.createElement('iframe'); f.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0'; document.body.appendChild(f);
+    f.srcdoc = html; f.onload = () => setTimeout(() => { f.contentWindow.focus(); f.contentWindow.print(); setTimeout(() => f.remove(), 60000); }, 800);
+  }
+  pdfSaved = () => this.setState({ sum: this.savedList() });
+  pdfShown = () => this.setState({ sum: this.filtered() });
+  sumGroups(list) { const g = {}; list.forEach(r => { const p = g[r.hn] = g[r.hn] || { hn: r.hn, name: r.pname, n: 0, qty: 0, no: 0, val: 0 }; p.n++; p.qty += r.qty; if (!r.has) { p.no++; p.val += r.cost * r.qty; } }); return Object.values(g).sort((a, b) => b.val - a.val); }
+  sumXlsx = () => {
+    const list = this.state.sum || []; if (!list.length) return;
+    const G = this.sumGroups(list), wb = XLSX.utils.book_new();
+    const ws1 = XLSX.utils.json_to_sheet(G.map(p => ({ HN: p.hn, 'ชื่อคนไข้': p.name, 'จำนวนรายการ': p.n, 'จำนวนชิ้น': p.qty, 'ค้างจ่าย (รายการ)': p.no, 'มูลค่าค้างจ่าย (บาท)': Math.round(p.val * 100) / 100 })));
+    ws1['!cols'] = [14, 34, 12, 10, 16, 20].map(w => ({ wch: w })); XLSX.utils.book_append_sheet(wb, ws1, 'สรุปรายคน');
+    const data = list.slice().sort((a, b) => a.hn < b.hn ? -1 : a.hn > b.hn ? 1 : a.date < b.date ? -1 : 1).map(r => ({ Ref: r.ref || '', HN: r.hn, 'ชื่อคนไข้': r.pname, 'วันที่': r.date, 'Item code': r.code, 'รายการ': (this.state.price.vp[r.code] && this.state.price.vp[r.code][0]) || r.item, 'จำนวน': r.qty, 'ราคาทุน': r.cost || '', 'บริษัทผู้ขาย': r.vendor || '', 'เลข PO': r.po || '', 'สถานะ': r.has ? 'มี PO (รับทราบ)' : 'ค้างจ่าย', 'มูลค่าค้างจ่าย': r.has ? 0 : r.cost * r.qty }));
+    const ws2 = XLSX.utils.json_to_sheet(data); ws2['!cols'] = Object.keys(data[0]).map(k => ({ wch: Math.min(100, Math.max(k.length, ...data.slice(0, 2000).map(r => String(r[k]).length)) + 3) })); XLSX.utils.book_append_sheet(wb, ws2, 'รายละเอียด');
+    XLSX.writeFile(wb, 'สรุปรายคน_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+  };
+  sumVals() {
+    const list = this.state.sum || [], G = this.sumGroups(list), open = !!this.state.sum;
+    return { sDisp: open ? 'flex' : 'none', sClose: () => this.setState({ sum: null }), sPdf: () => this.printPatients(list, 'สรุปรายคน Consignment'), sXlsx: this.sumXlsx,
+      sInfo: G.length + ' คน · ' + list.length + ' รายการ', sVal: this.fmt(G.reduce((a, p) => a + p.val, 0)),
+      sRows: G.slice(0, 300).map(p => ({ hn: p.hn, name: p.name, n: p.n, no: p.no, val: this.fmt(p.val) })), sMore: G.length > 300 ? 'แสดง 300 จาก ' + G.length + ' คน (PDF/Excel มีครบ)' : '' };
+  }
   exportSap = () => {
-    const L = Object.values(this.state.saved).filter(r => !r.has); if (!L.length) { alert('ไม่มีรายการค้างจ่ายที่บันทึกไว้'); return; }
+    const L = this.savedList().filter(r => !r.has); if (!L.length) { alert('ไม่มีรายการค้างจ่ายที่บันทึกไว้'); return; }
     const uom = (this.state.price && this.state.price.uom) || {};
     L.sort((a, b) => a.hn < b.hn ? -1 : a.hn > b.hn ? 1 : a.date < b.date ? -1 : 1);
     const rows = L.map((r, i) => { const u = uom[r.code] || ''; return { '#': i + 1, 'Item No.': r.code, 'Item Description': (this.state.price.vp[r.code] && this.state.price.vp[r.code][0]) || r.item, 'Free Text': 'HN : ' + r.hn + ' ' + r.pname, 'Quoted Qty.': r.qty, 'UoM Code': u, 'UoM Name': u, 'Unit Price': '', 'Gross Price': r.cost || '', 'Discount %': 0, 'Price after Discount': r.cost || '', 'Tax Code': 'IGN00' }; });
@@ -197,8 +400,8 @@ class Component extends DCLogic {
     XLSX.writeFile(wb, 'SAP_PO_Consignment_' + new Date().toISOString().slice(0, 10) + '.xlsx');
   };
   exportXlsx = () => {
-    const L = Object.values(this.state.saved); if (!L.length) return;
-    const det = L.map(r => ({ HN: r.hn, 'ชื่อคนไข้': r.pname, 'วันที่': r.date, 'Item code': r.code, 'รายการ': r.item, 'จำนวน': r.qty, 'ราคาทุน': r.cost || '', 'แหล่งราคา': r.src, 'บริษัทผู้ขาย': r.vendor, 'เลข PO': r.po, 'ผู้บันทึก': r.by || '', 'เวลาบันทึก': (r.at || '').slice(0, 16).replace('T', ' '), 'สถานะ': r.has ? 'มี PO (รับทราบ)' : 'ค้างจ่าย', 'มูลค่าค้างจ่าย': r.has ? 0 : r.cost * r.qty }));
+    const L = this.savedList(); if (!L.length) return;
+    const det = L.map(r => ({ Ref: r.ref || '', HN: r.hn, 'ชื่อคนไข้': r.pname, 'วันที่': r.date, 'Item code': r.code, 'รายการ': r.item, 'จำนวน': r.qty, 'ราคาทุน': r.cost || '', 'แหล่งราคา': r.src, 'บริษัทผู้ขาย': r.vendor, 'เลข PO': r.po, 'ผู้บันทึก': r.by || '', 'เวลาบันทึก': (r.at || '').slice(0, 16).replace('T', ' '), 'สถานะ': r.has ? 'มี PO (รับทราบ)' : 'ค้างจ่าย', 'มูลค่าค้างจ่าย': r.has ? 0 : r.cost * r.qty }));
     const g = {}, m = {};
     L.filter(r => !r.has).forEach(r => { const k = r.hn; g[k] = g[k] || { HN: r.hn, 'ชื่อคนไข้': r.pname, 'จำนวนรายการ': 0, 'มูลค่าค้างจ่าย': 0 }; g[k]['จำนวนรายการ']++; g[k]['มูลค่าค้างจ่าย'] += r.cost * r.qty; const mo = (r.date || '').slice(0, 7); m[mo] = m[mo] || { 'เดือน': mo, 'จำนวนรายการ': 0, 'มูลค่าค้างจ่าย': 0 }; m[mo]['จำนวนรายการ']++; m[mo]['มูลค่าค้างจ่าย'] += r.cost * r.qty; });
     const wb = XLSX.utils.book_new();
@@ -209,7 +412,7 @@ class Component extends DCLogic {
     XLSX.writeFile(wb, 'Consignment_ค้างจ่าย_' + new Date().toISOString().slice(0, 10) + '.xlsx');
   };
   renderVals() {
-    const s = this.state, all = this.compute(), rows = all.slice(0, 300);
+    const s = this.state, all = (s.tab === 'check' ? this.filtered() : []).sort((a, b) => { const so = s.sort; if (!so) return a.has === b.has ? 0 : a.has ? 1 : -1; const num = so.k === 'qty' || so.k === 'cost'; const x = this.colVal(a, so.k), y = this.colVal(b, so.k); return so.dir * (num ? (a[so.k] - b[so.k]) : x.localeCompare(y, 'th', { numeric: true })); }), rows = all.slice(0, 300);
     const noPo = all.filter(r => !r.has), saved = Object.values(s.saved), sNo = saved.filter(r => !r.has);
     const mapFields = [['hn', 'HN'], ['pname', 'ชื่อคนไข้'], ['code', 'Item code'], ['item', 'ชื่อรายการ'], ['cat', 'Categorycode'], ['qty', 'จำนวน'], ['date', 'วันที่']].map(([k, label]) => ({
       label, onChange: (e) => this.setState({ cols: { ...s.cols, [k]: e.target.value } }),
@@ -217,14 +420,25 @@ class Component extends DCLogic {
     }));
     const ready = !!s.po && !!s.price;
     const sq = s.sq.trim().toLowerCase(), isC = s.tab === 'check';
-    const savedRows = saved.filter(r => !sq || [r.hn, r.pname, r.vendor, r.code, r.item].join(' ').toLowerCase().includes(sq)).sort((a, b) => a.hn < b.hn ? -1 : a.hn > b.hn ? 1 : a.date < b.date ? -1 : 1).map(r => ({ ...r, cost: r.cost ? this.fmt(r.cost) : '', status: r.has ? 'มี PO · รับทราบ' : 'ค้างจ่าย', bg: r.has ? '#d9efe9' : '#f8e3d3', fg: r.has ? '#0b4f4b' : '#7a3a10', remove: () => { const n = { ...this.state.saved }; delete n[r.key]; this.push({ action: 'delete', keys: [r.key] }); localStorage.setItem('consign_saved', JSON.stringify(n)); this.setState({ saved: n }); } }));
+    const savedRows = this.savedView().map(r => ({ ...r, cost: r.cost ? this.fmt(r.cost) : '', status: r.has ? 'มี PO · รับทราบ' : 'ค้างจ่าย', bg: r.has ? '#d9efe9' : '#f8e3d3', fg: r.has ? '#0b4f4b' : '#7a3a10', remove: () => { const n = { ...this.state.saved }; delete n[r.key]; this.push({ action: 'delete', keys: [r.key] }); localStorage.setItem('consign_saved', JSON.stringify(n)); this.setState({ saved: n }); } }));
     return {
-      goCheck: () => this.setState({ tab: 'check' }), goSaved: () => this.setState({ tab: 'saved' }), checkDisp: isC ? 'flex' : 'none', savedDisp: isC ? 'none' : 'flex',
-      tabCheckBg: isC ? '#0b6e69' : 'transparent', tabCheckFg: isC ? '#fff' : '#274744', tabSavedBg: isC ? 'transparent' : '#0b6e69', tabSavedFg: isC ? '#274744' : '#fff',
+      goCheck: () => this.setState({ tab: 'check' }), goSaved: () => this.setState({ tab: 'saved' }), goReport: () => this.setState({ tab: 'report' }),
+      checkDisp: isC ? 'flex' : 'none', savedDisp: s.tab === 'saved' ? 'flex' : 'none', reportDisp: s.tab === 'report' ? 'flex' : 'none',
+      tabCheckBg: isC ? '#0b6e69' : 'transparent', tabCheckFg: isC ? '#fff' : '#274744', tabSavedBg: s.tab === 'saved' ? '#0b6e69' : 'transparent', tabSavedFg: s.tab === 'saved' ? '#fff' : '#274744', tabRepBg: s.tab === 'report' ? '#0b6e69' : 'transparent', tabRepFg: s.tab === 'report' ? '#fff' : '#274744',
+      ...(s.tab === 'report' ? (() => { const R = this.report(), mx = Math.max(...R.months.map(x => x.val), 1);
+        const rl = s.rLocs || [], lc = {}; if (s.cols.loc) s.bill.forEach(r => { const k = String(r[s.cols.loc] || '').trim(); if (k) lc[k] = (lc[k] || 0) + 1; });
+        return { rQ: s.rQ, onRQ: e => this.setState({ rQ: e.target.value }), rCon: s.rCon, onRCon: e => this.setState({ rCon: e.target.checked }), rSup: s.rSup, onRSup: e => this.setState({ rSup: e.target.checked }),
+          rLocLabel: rl.length ? 'หน่วยงาน (' + rl.length + ')' : 'หน่วยงาน: ทั้งหมด', clearRLocs: () => this.setState({ rLocs: [] }),
+          rLocOpts: Object.keys(lc).sort().map(k => ({ name: k, n: lc[k].toLocaleString(), on: rl.includes(k), toggle: () => this.setState({ rLocs: rl.includes(k) ? rl.filter(x => x !== k) : rl.concat(k) }) })),
+          repMonthOpts: [{ v: '', t: 'ทุกเดือน', sel: !s.rMonth }].concat(R.months.map(x => ({ v: x.m, t: this.mlabel(x.m), sel: s.rMonth === x.m }))), onRMonth: e => this.setState({ rMonth: e.target.value }), onRMode: e => this.setState({ rMode: e.target.value }), rModeNo: s.rMode === 'nopo', rModeAll: s.rMode === 'all',
+          rTotal: this.fmt(R.selM.reduce((a, x) => a + x.val, 0)), rMonths: R.selM.length, rPts: new Set(R.rows.filter(r => !s.rMonth || (r.date || '').slice(0, 7) === s.rMonth).map(r => r.hn)).size, rItems: R.selM.reduce((a, x) => a + x.items, 0).toLocaleString(),
+          rBars: R.months.map(x => ({ label: this.mlabel(x.m), val: this.fmt(x.val), pct: Math.max(1, x.val / mx * 100) + '%', sub: x.pts.size + ' คน · ' + x.items + ' รายการ', bg: s.rMonth === x.m ? '#a4501a' : '#0b6e69', pick: () => this.setState({ rMonth: s.rMonth === x.m ? '' : x.m }) })),
+          rRows: R.selP.slice(0, 500).map(p => ({ month: this.mlabel(p.m), hn: p.hn, name: p.name, items: p.items, qty: p.qty, val: this.fmt(p.val) })), rNote: R.selP.length > 500 ? 'แสดง 500 จาก ' + R.selP.length + ' แถว (Excel/PDF มีครบ)' : R.selP.length + ' แถว' }; })() : { repMonthOpts: [], rBars: [], rRows: [], rLocOpts: [], rQ: '', rCon: false, rSup: false, rLocLabel: '', onRQ: () => {}, onRCon: () => {}, onRSup: () => {}, clearRLocs: () => {}, rTotal: '', rMonths: '', rPts: '', rItems: '', rNote: '', rModeNo: true, rModeAll: false, onRMonth: () => {}, onRMode: () => {} }),
+      pdfReport: this.pdfReport, exportReportXlsx: this.exportReportXlsx,
       api: s.api, setApi: this.setApi, syncMsg: s.syncMsg || (s.api ? '' : 'ยังไม่ได้เชื่อม Google Sheet (บันทึกในเครื่องนี้เท่านั้น)'),
       locLabel: s.locs.length ? 'หน่วยงาน (' + s.locs.length + ')' : 'หน่วยงาน: ทั้งหมด', clearLocs: () => this.setState({ locs: [] }),
       locOpts: (() => { const c = {}; if (s.cols.loc) s.bill.forEach(r => { const k = String(r[s.cols.loc] || '').trim(); if (k) c[k] = (c[k] || 0) + 1; }); return Object.keys(c).sort().map(k => ({ name: k, n: c[k].toLocaleString(), on: s.locs.includes(k), toggle: () => this.setState({ locs: s.locs.includes(k) ? s.locs.filter(x => x !== k) : s.locs.concat(k) }) })); })(),
-      exportSap: this.exportSap, codeQ: s.codeQ, onCodeQ: e => this.setState({ codeQ: e.target.value }), dFrom: s.dFrom, dTo: s.dTo, onFrom: e => this.setState({ dFrom: e.target.value }), onTo: e => this.setState({ dTo: e.target.value }),
+      pdfSaved: this.pdfSaved, pdfShown: this.pdfShown, exportSap: this.exportSap, codeQ: s.codeQ, onCodeQ: e => this.setState({ codeQ: e.target.value }), dFrom: s.dFrom, dTo: s.dTo, onFrom: e => this.setState({ dFrom: e.target.value }), onTo: e => this.setState({ dTo: e.target.value }),
       user: s.user, setUser: this.setUser, exportShare: this.exportShare, importShare: this.importShare, mergeMsg: s.mergeMsg,
       sq: s.sq, onSq: e => this.setState({ sq: e.target.value }), savedRows, savedEmpty: savedRows.length ? '' : 'ยังไม่มีรายการที่บันทึก',
       dataStatus: s.loadErr ? 'โหลดข้อมูลไม่สำเร็จ' : ready ? 'SAP PO ที่มี HN: ' + s.poN + ' รายการ · VPRICELIST: ' + Object.keys(s.price.vp).length.toLocaleString() + ' รหัส' : 'กำลังโหลดข้อมูล SAP...',
@@ -232,9 +446,11 @@ class Component extends DCLogic {
       query: s.query, onQuery: e => this.setState({ query: e.target.value }), onlyCon: s.onlyCon, onCon: e => this.setState({ onlyCon: e.target.checked }), onlySup: s.onlySup, onSup: e => this.setState({ onlySup: e.target.checked }), onFilter: e => this.setState({ filter: e.target.value }),
       cTotal: all.length.toLocaleString(), cPo: (all.length - noPo.length).toLocaleString(), cNoPo: noPo.length.toLocaleString(), cAccrual: this.fmt(noPo.reduce((a, r) => a + r.cost * r.qty, 0)),
       shownNote: all.length > 300 ? 'แสดง 300 จาก ' + all.length.toLocaleString() + ' รายการ (กรองเพิ่มด้วย HN/ชื่อ)' : 'แสดง ' + all.length + ' รายการ',
-      rows: rows.map(r => { const sv = !!s.saved[r.key]; return { ...r, qty: r.qty, cost: r.cost ? this.fmt(r.cost) : '', status: r.has ? 'มี PO · รับทราบ' : 'ค้างจ่าย', bg: r.has ? '#d9efe9' : '#f8e3d3', fg: r.has ? '#0b4f4b' : '#7a3a10', btnText: sv ? 'บันทึกแล้ว · ' + (s.saved[r.key].by || '') : 'บันทึก', btnBg: sv ? '#d9efe9' : '#fff', save: () => this.saveRows([r]) }; }),
+      rows: rows.map(r => { const sv = !!s.saved[r.key]; return { ...r, rowBg: r.has ? '#fff' : '#fff', qty: r.qty, cost: r.cost ? this.fmt(r.cost) : '', status: r.has ? 'มี PO · รับทราบ' : 'ค้างจ่าย', bg: r.has ? '#d9efe9' : '#f8e3d3', fg: r.has ? '#0b4f4b' : '#7a3a10', btnText: sv ? 'บันทึกแล้ว · ' + (s.saved[r.key].by || '') : 'บันทึก', btnBg: sv ? '#d9efe9' : '#fff', locked: sv, checked: sv || !!s.sel[r.key], refTxt: sv ? s.saved[r.key].ref || '' : '', stopc: (e) => e.stopPropagation(), tog: (e) => { e.stopPropagation(); this.setState({ sel: { ...this.state.sel, [r.key]: !this.state.sel[r.key] } }); }, open: () => this.openDetail(r.hn, r.pname) }; }),
+      ...this.detailVals(), ...this.sumVals(),
       emptyNote: !ready ? '' : !s.bill.length ? 'อัปโหลดไฟล์ Billing เพื่อเริ่มตรวจสอบ' : !s.cols.hn || !s.cols.code ? 'เลือกคอลัมน์ HN และ Item code ด้านบน' : all.length ? '' : 'ไม่พบรายการตามเงื่อนไข',
-      saveAll: () => this.saveRows(all), savedCount: saved.length, savedAccrual: this.fmt(sNo.reduce((a, r) => a + r.cost * r.qty, 0)),
+      selCount: all.filter(r => s.sel[r.key] && !s.saved[r.key]).length, selAll: () => { const n = {}; all.forEach(r => { if (!s.saved[r.key]) n[r.key] = true; }); this.setState({ sel: n }); }, selNone: () => this.setState({ sel: {} }),
+      saveSel: () => { const l = all.filter(r => s.sel[r.key] && !s.saved[r.key]); if (!l.length) { alert('ยังไม่ได้ติ๊กเลือกรายการ'); return; } this.saveRows(l); }, lastRef: s.lastRef ? 'บันทึกล่าสุด Ref ' + s.lastRef : '', savedCount: saved.length, savedAccrual: this.fmt(sNo.reduce((a, r) => a + r.cost * r.qty, 0)),
       clearSaved: () => { if (this.api() && !confirm('ล้างข้อมูลใน Google Sheet ของทุกคน?')) return; this.push({ action: 'clear' }); localStorage.removeItem('consign_saved'); this.setState({ saved: {} }); }, exportXlsx: this.exportXlsx
     };
   }
