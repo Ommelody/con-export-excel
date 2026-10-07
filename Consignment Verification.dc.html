@@ -45,6 +45,11 @@
 <label style="display:flex;gap:8px;align-items:center;font-size:15px;background:#fff;border:1px solid #d5e3e0;border-radius:8px;padding:10px 14px"><input type="checkbox" checked="{{ onlySup }}" onChange="{{ onSup }}">SUP (รหัสขึ้นต้น 65)</label>
 <input type="text" value="{{ codeQ }}" onInput="{{ onCodeQ }}" placeholder="รหัสเวชภัณฑ์ (คั่นด้วย ,)" style="flex:0 1 220px;font-family:inherit;font-size:15px;padding:10px 12px;border:1px solid #9fbbb6;border-radius:8px;outline:none;background:#fff">
 <label style="display:flex;gap:8px;align-items:center;font-size:14px;background:#fff;border:1px solid #d5e3e0;border-radius:8px;padding:6px 12px">ตั้งแต่<input type="date" value="{{ dFrom }}" onChange="{{ onFrom }}" style="font-family:inherit;font-size:14px;border:0;outline:none">ถึง<input type="date" value="{{ dTo }}" onChange="{{ onTo }}" style="font-family:inherit;font-size:14px;border:0;outline:none"></label>
+<details style="position:relative;background:#fff;border:1px solid #d5e3e0;border-radius:8px"><summary style="cursor:pointer;padding:10px 14px;font-size:15px;list-style:none">{{ locLabel }} ▾</summary>
+<div style="position:absolute;z-index:10;top:44px;left:0;min-width:300px;max-height:320px;overflow:auto;background:#fff;border:1px solid #9fbbb6;border-radius:8px;padding:8px;box-shadow:0 6px 18px rgba(0,0,0,.12);display:flex;flex-direction:column;gap:2px">
+<button onClick="{{ clearLocs }}" style="font-family:inherit;font-size:13px;text-align:left;border:0;background:#e8f1ef;color:#274744;border-radius:6px;padding:6px 8px;cursor:pointer">ล้างตัวเลือก (แสดงทั้งหมด)</button>
+<sc-for list="{{ locOpts }}" as="o" hint-placeholder-count="3"><label style="display:flex;gap:8px;align-items:center;font-size:14px;padding:5px 8px;cursor:pointer"><input type="checkbox" checked="{{ o.on }}" onChange="{{ o.toggle }}"><span style="flex:1">{{ o.name }}</span><span style="color:#4b6764;font-size:12px">{{ o.n }}</span></label></sc-for>
+</div></details>
 <select onChange="{{ onFilter }}" style="font-family:inherit;font-size:15px;padding:10px 12px;border:1px solid #d5e3e0;border-radius:8px;background:#fff;color:#17302e">
 <option value="all">ทุกสถานะ</option><option value="po">มี PO แล้ว (รับทราบ)</option><option value="nopo">ยังไม่มี PO (ค้างจ่าย)</option></select>
 </section>
@@ -102,13 +107,13 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  state = { codeQ: '', dFrom: '', dTo: '', onlySup: false, api: localStorage.getItem('consign_api') || 'https://script.google.com/macros/s/AKfycbz61GyfTxjSoxCoRyKGxqiU5PfRzsNkwKl9kGarV4nm5wVLQE9mnjd--vrw7c8gDumZ/exec', syncMsg: '', user: localStorage.getItem('consign_user') || '', mergeMsg: '', tab: 'check', sq: '', po: null, price: null, bill: [], cols: {}, headers: [], query: '', onlyCon: true, filter: 'all', saved: {}, fileMsg: '', loadErr: '' };
+  state = { locs: [], codeQ: '', dFrom: '', dTo: '', onlySup: false, api: localStorage.getItem('consign_api') || 'https://script.google.com/macros/s/AKfycbz61GyfTxjSoxCoRyKGxqiU5PfRzsNkwKl9kGarV4nm5wVLQE9mnjd--vrw7c8gDumZ/exec', syncMsg: '', user: localStorage.getItem('consign_user') || '', mergeMsg: '', tab: 'check', sq: '', po: null, price: null, bill: [], cols: {}, headers: [], query: '', onlyCon: true, filter: 'all', saved: {}, fileMsg: '', loadErr: '' };
   componentDidMount() {
     this.sync(); this.timer = setInterval(this.sync, 20000);
     try { const s = JSON.parse(localStorage.getItem('consign_saved') || '{}'); this.setState({ saved: s }); } catch (e) {}
     Promise.all([1, 2, 3, 4].map(i => fetch('data/billing_' + i + '.json').then(r => r.json()))).then(ps => {
-      const b = [].concat(...ps).map(a => ({ Date: a[0], HN: a[1], 'Patient Name': a[2], Categorycode: a[3], itemcode: a[4], itemname: a[5], QTY: a[6], Cost: a[7], 'bill number': a[8], __f: 'dailysale' }));
-      const h = ['Date', 'HN', 'Patient Name', 'Categorycode', 'itemcode', 'itemname', 'QTY', 'Cost', 'bill number'];
+      const b = [].concat(...ps).map(a => ({ Date: a[0], HN: a[1], 'Patient Name': a[2], Categorycode: a[3], itemcode: a[4], itemname: a[5], QTY: a[6], Cost: a[7], 'bill number': a[8], LocFromName: a[9], __f: 'dailysale' }));
+      const h = ['Date', 'HN', 'Patient Name', 'Categorycode', 'itemcode', 'itemname', 'QTY', 'Cost', 'bill number', 'LocFromName'];
       this.setState({ bill: b, headers: h, cols: this.detect(h), fileMsg: 'โหลดอัตโนมัติ: dailysale 5 ไฟล์ · ' + b.length.toLocaleString() + ' แถว (CON + SUP รหัส 65) · อัปโหลดไฟล์อื่นเพื่อแทนที่ได้' });
     }).catch(() => {});
     Promise.all([fetch('data/po_hn.json').then(r => r.json()), fetch('data/price.json').then(r => r.json())])
@@ -125,7 +130,7 @@ class Component extends DCLogic {
     return { hn: f(/^hn$|^hn[^a-z]|hn\b|เลข.*hn/i) || f(/hn/i), pname: f(/ชื่อ.*(ผู้ป่วย|คนไข้)|patient.*name|ชื่อ-?สกุล|^name$/i) || f(/ชื่อ/),
       code: f(/item.?code|order.?item.?code|รหัส.*(สินค้า|รายการ|พัสดุ)|^code$|ordercode|itemcode/i) || f(/code|รหัส/i),
       item: f(/item.?name|ชื่อ.*(สินค้า|รายการ)|description|รายการ/i), cat: f(/category.?code|ordercategory|หมวด|category/i),
-      qty: f(/qty|quantity|จำนวน/i), date: f(/date|วันที่/i), amt: f(/amount|net|ราคา|มูลค่า|จำนวนเงิน|price/i) };
+      qty: f(/qty|quantity|จำนวน/i), date: f(/date|วันที่/i), loc: f(/locfromname|หน่วยงาน/i), amt: f(/amount|net|ราคา|มูลค่า|จำนวนเงิน|price/i) };
   }
   onFiles = async (e) => {
     const files = [...e.target.files]; if (!files.length) return;
@@ -140,12 +145,13 @@ class Component extends DCLogic {
     e.target.value = '';
   };
   compute() {
-    const { po, price, bill, cols, query, onlyCon, onlySup, filter, codeQ, dFrom, dTo } = this.state; const ctoks = codeQ.split(/[,;\s]+/).map(t => t.trim().toLowerCase()).filter(Boolean); if (!po || !price || !cols.hn || !cols.code) return [];
+    const { po, price, bill, cols, query, onlyCon, onlySup, filter, codeQ, dFrom, dTo } = this.state; const locs = this.state.locs || []; const ctoks = codeQ.split(/[,;\s]+/).map(t => t.trim().toLowerCase()).filter(Boolean); if (!po || !price || !cols.hn || !cols.code) return [];
     const toks = query.split(/[,;\n]+/).map(t => t.trim().toLowerCase()).filter(Boolean).map(t => ({ t, n: this.nh(t) })); const out = [];
     for (const r of bill) {
       const hn = String(r[cols.hn] || '').trim(), pname = String(r[cols.pname] || '').trim(); if (!hn && !pname) continue;
       if (toks.length && !toks.some(k => (k.n && /\d/.test(k.t) && this.nh(hn).includes(k.n)) || pname.toLowerCase().includes(k.t))) continue;
       const code = String(r[cols.code] || '').trim(); if (!code) continue;
+      if (locs.length && !locs.includes(String(r[cols.loc] || '').trim())) continue;
       if (ctoks.length && !ctoks.some(t => code.toLowerCase().includes(t))) continue;
       const dd = r[cols.date] instanceof Date ? r[cols.date].toISOString().slice(0, 10) : String(r[cols.date] || '').slice(0, 10);
       if (dFrom && dd < dFrom) continue; if (dTo && dd > dTo) continue;
@@ -216,6 +222,8 @@ class Component extends DCLogic {
       goCheck: () => this.setState({ tab: 'check' }), goSaved: () => this.setState({ tab: 'saved' }), checkDisp: isC ? 'flex' : 'none', savedDisp: isC ? 'none' : 'flex',
       tabCheckBg: isC ? '#0b6e69' : 'transparent', tabCheckFg: isC ? '#fff' : '#274744', tabSavedBg: isC ? 'transparent' : '#0b6e69', tabSavedFg: isC ? '#274744' : '#fff',
       api: s.api, setApi: this.setApi, syncMsg: s.syncMsg || (s.api ? '' : 'ยังไม่ได้เชื่อม Google Sheet (บันทึกในเครื่องนี้เท่านั้น)'),
+      locLabel: s.locs.length ? 'หน่วยงาน (' + s.locs.length + ')' : 'หน่วยงาน: ทั้งหมด', clearLocs: () => this.setState({ locs: [] }),
+      locOpts: (() => { const c = {}; if (s.cols.loc) s.bill.forEach(r => { const k = String(r[s.cols.loc] || '').trim(); if (k) c[k] = (c[k] || 0) + 1; }); return Object.keys(c).sort().map(k => ({ name: k, n: c[k].toLocaleString(), on: s.locs.includes(k), toggle: () => this.setState({ locs: s.locs.includes(k) ? s.locs.filter(x => x !== k) : s.locs.concat(k) }) })); })(),
       exportSap: this.exportSap, codeQ: s.codeQ, onCodeQ: e => this.setState({ codeQ: e.target.value }), dFrom: s.dFrom, dTo: s.dTo, onFrom: e => this.setState({ dFrom: e.target.value }), onTo: e => this.setState({ dTo: e.target.value }),
       user: s.user, setUser: this.setUser, exportShare: this.exportShare, importShare: this.importShare, mergeMsg: s.mergeMsg,
       sq: s.sq, onSq: e => this.setState({ sq: e.target.value }), savedRows, savedEmpty: savedRows.length ? '' : 'ยังไม่มีรายการที่บันทึก',
