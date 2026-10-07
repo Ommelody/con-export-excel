@@ -8,7 +8,7 @@
 <body>
 <x-dc>
 <helmet>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&amp;display=swap">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>body{margin:0;background:#f3f7f6}a{color:#0b6e69}a:hover{color:#084f4b}</style>
 </helmet>
@@ -156,6 +156,15 @@
 <div style="padding:28px;text-align:center;color:#4b6764;font-size:15px">{{ savedEmpty }}</div></section>
 </div>
 </main>
+<div onClick="{{ rpClose }}" style="display:{{ rpDisp }};position:fixed;inset:0;background:rgba(10,40,38,.55);z-index:70;align-items:center;justify-content:center;padding:24px;box-sizing:border-box">
+<div onClick="{{ stop }}" style="background:#fff;border-radius:12px;width:min(460px,100%);padding:28px 28px 24px;display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.3)">
+<div style="font-size:15px;color:#4b6764">บันทึกเรียบร้อย · รหัสบันทึกล่าสุด</div>
+<div style="font-size:48px;font-weight:600;color:#0b6e69;letter-spacing:2px;line-height:1.1">{{ rpRef }}</div>
+<div style="font-size:14px;color:#274744">{{ rpInfo }}</div>
+<div style="font-size:13px;color:#a4501a">{{ rpWarn }}</div>
+<div style="font-size:13px;color:#4b6764">เขียนเลขนี้บนเอกสารจริงเพื่อตรวจสอบย้อนกลับ</div>
+<div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center"><button onClick="{{ rpCopy }}" style="font-family:inherit;font-size:14px;background:#fff;color:#0b6e69;border:1px solid #0b6e69;border-radius:8px;padding:9px 16px;cursor:pointer">{{ rpCopyTxt }}</button><button onClick="{{ rpPdf }}" style="font-family:inherit;font-size:14px;background:#fff;color:#0b6e69;border:1px solid #0b6e69;border-radius:8px;padding:9px 16px;cursor:pointer">PDF</button><button onClick="{{ rpXlsx }}" style="font-family:inherit;font-size:14px;background:#fff;color:#0b6e69;border:1px solid #0b6e69;border-radius:8px;padding:9px 16px;cursor:pointer">Excel</button><button onClick="{{ rpClose }}" style="font-family:inherit;font-size:14px;font-weight:500;background:#0b6e69;color:#fff;border:0;border-radius:8px;padding:9px 22px;cursor:pointer">ตกลง</button></div>
+</div></div>
 <div onClick="{{ sClose }}" style="display:{{ sDisp }};position:fixed;inset:0;background:rgba(10,40,38,.55);z-index:60;align-items:center;justify-content:center;padding:24px;box-sizing:border-box">
 <div onClick="{{ stop }}" style="background:#fff;border-radius:12px;width:min(820px,100%);max-height:100%;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.3)">
 <div style="padding:18px 24px;border-bottom:1px solid #d5e3e0;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap">
@@ -182,7 +191,7 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  state = { sel: {}, lastRef: '', scf: {}, ssort: null, scolOpen: '', colOpen: '', sort: null, cf: {}, sCon: false, sSup: false, dCon: false, dSup: false, rQ: '', rCon: false, rSup: false, rLocs: [], rMonth: '', rMode: 'nopo', locs: [], codeQ: '', dFrom: '', dTo: '', onlySup: false, api: localStorage.getItem('consign_api') || 'https://script.google.com/macros/s/AKfycbz61GyfTxjSoxCoRyKGxqiU5PfRzsNkwKl9kGarV4nm5wVLQE9mnjd--vrw7c8gDumZ/exec', syncMsg: '', user: localStorage.getItem('consign_user') || '', mergeMsg: '', tab: 'check', sq: '', po: null, price: null, bill: [], cols: {}, headers: [], query: '', onlyCon: true, filter: 'all', saved: {}, fileMsg: '', loadErr: '' };
+  state = { refPop: null, sel: {}, lastRef: '', scf: {}, ssort: null, scolOpen: '', colOpen: '', sort: null, cf: {}, sCon: false, sSup: false, dCon: false, dSup: false, rQ: '', rCon: false, rSup: false, rLocs: [], rMonth: '', rMode: 'nopo', locs: [], codeQ: '', dFrom: '', dTo: '', onlySup: false, api: localStorage.getItem('consign_api') || 'https://script.google.com/macros/s/AKfycbz61GyfTxjSoxCoRyKGxqiU5PfRzsNkwKl9kGarV4nm5wVLQE9mnjd--vrw7c8gDumZ/exec', syncMsg: '', user: localStorage.getItem('consign_user') || '', mergeMsg: '', tab: 'check', sq: '', po: null, price: null, bill: [], cols: {}, headers: [], query: '', onlyCon: true, filter: 'all', saved: {}, fileMsg: '', loadErr: '' };
   componentDidMount() {
     this.sync(); this.timer = setInterval(this.sync, 20000);
     try { const s = JSON.parse(localStorage.getItem('consign_saved') || '{}'); this.setState({ saved: s }); } catch (e) {}
@@ -266,7 +275,7 @@ class Component extends DCLogic {
   headerVals(kind) {
     const s = this.state, sv = kind === 'saved';
     const P = sv ? { cf: 'scf', so: 'ssort', op: 'scolOpen', tab: 'saved', rows: () => this.savedList(true), D: [['ref', 'Ref'], ['hn', 'HN'], ['pname', 'ชื่อคนไข้'], ['date', 'วันที่'], ['code', 'Item code'], ['item', 'รายการ'], ['qty', 'จำนวน', 1], ['cost', 'ราคาทุน', 1], ['vendor', 'บริษัทผู้ขาย'], ['po', 'เลข PO'], ['status', 'สถานะ'], ['by', 'ผู้บันทึก']] }
-      : { cf: 'cf', so: 'sort', op: 'colOpen', tab: 'check', rows: () => this.compute(), D: [['hn', 'HN'], ['pname', 'ชื่อคนไข้'], ['date', 'วันที่'], ['code', 'Item code'], ['item', 'รายการ'], ['qty', 'จำนวน', 1], ['cost', 'ราคาทุน (รวม VAT สำหรับ SAP)', 1], ['src', 'แหล่งราคา'], ['vendor', 'บริษัทผู้ขาย'], ['po', 'เลข PO'], ['status', 'สถานะ']] };
+      : { cf: 'cf', so: 'sort', op: 'colOpen', tab: 'check', rows: () => this.compute(), D: [['hn', 'HN'], ['pname', 'ชื่อคนไข้'], ['date', 'วันที่'], ['code', 'Item code'], ['item', 'รายการ'], ['qty', 'จำนวน', 1], ['cost', 'ราคาทุน INVAT ', 1], ['src', 'แหล่งราคา'], ['vendor', 'บริษัทผู้ขาย'], ['po', 'เลข PO'], ['status', 'สถานะ']] };
     const cf = s[P.cf] || {}, open = s[P.op], so = s[P.so];
     return P.D.map(([k, label, num]) => {
       const sel = cf[k] || [], isOpen = open === k; let opts = [];
@@ -332,9 +341,10 @@ class Component extends DCLogic {
   }
   api() { return (this.state.api || '').trim(); }
   setApi = (e) => { localStorage.setItem('consign_api', e.target.value); this.setState({ api: e.target.value }, () => this.sync()); };
-  applyRemote(j) { const s = {}; (j.rows || []).forEach(r => { r.hn = String(r.hn); r.code = String(r.code); r.qty = this.num(r.qty); r.cost = this.num(r.cost); if (!r.ref && this.state.saved[r.key] && this.state.saved[r.key].ref) r.ref = this.state.saved[r.key].ref; s[r.key] = r; }); localStorage.setItem('consign_saved', JSON.stringify(s)); this.setState({ saved: s, ...(j.ref ? { lastRef: j.ref + (this.state.lastRef ? '' : '') } : {}), syncMsg: 'ซิงก์กับ Google Sheet ล่าสุด ' + new Date().toLocaleTimeString('th-TH') }); }
+  applyRemote(j, post) { const s = {}; (j.rows || []).forEach(r => { r.hn = String(r.hn); r.code = String(r.code); r.qty = this.num(r.qty); r.cost = this.num(r.cost); if (!r.ref && this.state.saved[r.key] && this.state.saved[r.key].ref) r.ref = this.state.saved[r.key].ref; s[r.key] = r; }); localStorage.setItem('consign_saved', JSON.stringify(s)); const rp = this.state.refPop; let pop = rp; if (post && rp && rp.pending) { const ref = j.ref || rp.prov; pop = { ...rp, ref, pending: false }; (rp.keys || []).forEach(k => { if (s[k]) s[k].ref = ref; }); localStorage.setItem('consign_saved', JSON.stringify(s)); }
+    this.setState({ saved: s, refPop: pop, ...(post && pop && pop.ref ? { lastRef: pop.ref + ' · ' + pop.n + ' รายการ' } : {}), syncMsg: 'ซิงก์กับ Google Sheet ล่าสุด ' + new Date().toLocaleTimeString('th-TH') }); }
   sync = () => { const u = this.api(); if (!u) { this.setState({ syncMsg: '' }); return; } fetch(u).then(r => r.json()).then(j => j.ok ? this.applyRemote(j) : Promise.reject(j.error)).catch(e => this.setState({ syncMsg: 'ซิงก์ไม่สำเร็จ: ' + e })); };
-  push(body) { const u = this.api(); if (!u) return; this.setState({ syncMsg: 'กำลังส่งข้อมูล...' }); fetch(u, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) }).then(r => r.json()).then(j => j.ok ? this.applyRemote(j) : Promise.reject(j.error)).catch(e => this.setState({ syncMsg: 'ส่งข้อมูลไม่สำเร็จ: ' + e })); }
+  push(body) { const u = this.api(); if (!u) return; this.setState({ syncMsg: 'กำลังส่งข้อมูล...' }); fetch(u, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) }).then(r => r.json()).then(j => j.ok ? this.applyRemote(j, true) : Promise.reject(j.error)).catch(e => this.setState({ syncMsg: 'ส่งข้อมูลไม่สำเร็จ: ' + e, refPop: this.state.refPop ? { ...this.state.refPop, pending: false, fail: true } : null })); }
   componentWillUnmount() { clearInterval(this.timer); }
   setUser = (e) => { localStorage.setItem('consign_user', e.target.value); this.setState({ user: e.target.value }); };
   exportShare = () => {
@@ -352,7 +362,7 @@ class Component extends DCLogic {
     const s = { ...this.state.saved }, by = this.state.user || 'ไม่ระบุชื่อ', at = new Date().toISOString(), ref = this.nextRef();
     list.forEach(r => { s[r.key] = { ...r, by, at, ref }; });
     this.push({ action: 'upsert', batchRef: true, rows: list.map(r => ({ ...r, by, at, ref })) });
-    localStorage.setItem('consign_saved', JSON.stringify(s)); this.setState({ saved: s, sel: {}, lastRef: ref + ' · ' + list.length + ' รายการ' });
+    localStorage.setItem('consign_saved', JSON.stringify(s)); this.setState({ saved: s, sel: {}, lastRef: ref + ' · ' + list.length + ' รายการ', refPop: { ref, prov: ref, pending: !!this.api(), n: list.length, val: list.reduce((a, r) => a + (r.has ? 0 : r.cost * r.qty), 0), keys: list.map(r => r.key), by, at, copied: false } });
   }
   printPatients(list, title) {
     if (!list.length) { alert('ไม่มีรายการ'); return; }
@@ -384,6 +394,12 @@ class Component extends DCLogic {
     const ws2 = XLSX.utils.json_to_sheet(data); ws2['!cols'] = Object.keys(data[0]).map(k => ({ wch: Math.min(100, Math.max(k.length, ...data.slice(0, 2000).map(r => String(r[k]).length)) + 3) })); XLSX.utils.book_append_sheet(wb, ws2, 'รายละเอียด');
     XLSX.writeFile(wb, 'สรุปรายคน_' + new Date().toISOString().slice(0, 10) + '.xlsx');
   };
+  refVals() {
+    const p = this.state.refPop, rows = p ? p.keys.map(k => this.state.saved[k]).filter(Boolean) : [];
+    return { rpDisp: p ? 'flex' : 'none', rpRef: p ? (p.pending ? 'กำลังออกเลข...' : p.ref) : '', rpInfo: p ? p.n + ' รายการ · ค้างจ่าย ' + this.fmt(p.val) + ' บาท · ผู้บันทึก ' + p.by : '', rpWarn: p && p.fail ? 'ส่งข้อมูลไป Google Sheet ไม่สำเร็จ เลขนี้อยู่ในเครื่องนี้เท่านั้น' : '', rpClose: () => this.setState({ refPop: null }),
+      rpCopy: () => { if (p && !p.pending) { try { navigator.clipboard.writeText(p.ref); } catch (e) {} this.setState({ refPop: { ...p, copied: true } }); } }, rpCopyTxt: p && p.copied ? 'คัดลอกแล้ว' : 'คัดลอกเลข',
+      rpPdf: () => this.printPatients(rows, 'Ref ' + (p && p.ref)), rpXlsx: () => this.exportList(rows, 'Ref_' + (p && p.ref)) };
+  }
   sumVals() {
     const list = this.state.sum || [], G = this.sumGroups(list), open = !!this.state.sum;
     return { sDisp: open ? 'flex' : 'none', sClose: () => this.setState({ sum: null }), sPdf: () => this.printPatients(list, 'สรุปรายคน Consignment'), sXlsx: this.sumXlsx,
@@ -447,7 +463,7 @@ class Component extends DCLogic {
       cTotal: all.length.toLocaleString(), cPo: (all.length - noPo.length).toLocaleString(), cNoPo: noPo.length.toLocaleString(), cAccrual: this.fmt(noPo.reduce((a, r) => a + r.cost * r.qty, 0)),
       shownNote: all.length > 300 ? 'แสดง 300 จาก ' + all.length.toLocaleString() + ' รายการ (กรองเพิ่มด้วย HN/ชื่อ)' : 'แสดง ' + all.length + ' รายการ',
       rows: rows.map(r => { const sv = !!s.saved[r.key]; return { ...r, rowBg: r.has ? '#fff' : '#fff', qty: r.qty, cost: r.cost ? this.fmt(r.cost) : '', status: r.has ? 'มี PO · รับทราบ' : 'ค้างจ่าย', bg: r.has ? '#d9efe9' : '#f8e3d3', fg: r.has ? '#0b4f4b' : '#7a3a10', btnText: sv ? 'บันทึกแล้ว · ' + (s.saved[r.key].by || '') : 'บันทึก', btnBg: sv ? '#d9efe9' : '#fff', locked: sv, checked: sv || !!s.sel[r.key], refTxt: sv ? s.saved[r.key].ref || '' : '', stopc: (e) => e.stopPropagation(), tog: (e) => { e.stopPropagation(); this.setState({ sel: { ...this.state.sel, [r.key]: !this.state.sel[r.key] } }); }, open: () => this.openDetail(r.hn, r.pname) }; }),
-      ...this.detailVals(), ...this.sumVals(),
+      ...this.detailVals(), ...this.sumVals(), ...this.refVals(),
       emptyNote: !ready ? '' : !s.bill.length ? 'อัปโหลดไฟล์ Billing เพื่อเริ่มตรวจสอบ' : !s.cols.hn || !s.cols.code ? 'เลือกคอลัมน์ HN และ Item code ด้านบน' : all.length ? '' : 'ไม่พบรายการตามเงื่อนไข',
       selCount: all.filter(r => s.sel[r.key] && !s.saved[r.key]).length, selAll: () => { const n = {}; all.forEach(r => { if (!s.saved[r.key]) n[r.key] = true; }); this.setState({ sel: n }); }, selNone: () => this.setState({ sel: {} }),
       saveSel: () => { const l = all.filter(r => s.sel[r.key] && !s.saved[r.key]); if (!l.length) { alert('ยังไม่ได้ติ๊กเลือกรายการ'); return; } this.saveRows(l); }, lastRef: s.lastRef ? 'บันทึกล่าสุด Ref ' + s.lastRef : '', savedCount: saved.length, savedAccrual: this.fmt(sNo.reduce((a, r) => a + r.cost * r.qty, 0)),
