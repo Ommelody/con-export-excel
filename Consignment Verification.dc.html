@@ -41,7 +41,8 @@
 </section>
 <section style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
 <input type="text" value="{{ query }}" onInput="{{ onQuery }}" placeholder="2. กรอก HN หรือชื่อคนไข้ (หลายคนคั่นด้วย , เช่น 24-001915, 24-001652)" style="flex:1 1 320px;font-family:inherit;font-size:16px;padding:11px 14px;border:1px solid #9fbbb6;border-radius:8px;outline:none;background:#fff">
-<label style="display:flex;gap:8px;align-items:center;font-size:15px;background:#fff;border:1px solid #d5e3e0;border-radius:8px;padding:10px 14px"><input type="checkbox" checked="{{ onlyCon }}" onChange="{{ onCon }}">เฉพาะ CON และ SUP ที่ขึ้นต้นด้วย 65</label>
+<label style="display:flex;gap:8px;align-items:center;font-size:15px;background:#fff;border:1px solid #d5e3e0;border-radius:8px;padding:10px 14px"><input type="checkbox" checked="{{ onlyCon }}" onChange="{{ onCon }}">CON</label>
+<label style="display:flex;gap:8px;align-items:center;font-size:15px;background:#fff;border:1px solid #d5e3e0;border-radius:8px;padding:10px 14px"><input type="checkbox" checked="{{ onlySup }}" onChange="{{ onSup }}">SUP (รหัสขึ้นต้น 65)</label>
 <select onChange="{{ onFilter }}" style="font-family:inherit;font-size:15px;padding:10px 12px;border:1px solid #d5e3e0;border-radius:8px;background:#fff;color:#17302e">
 <option value="all">ทุกสถานะ</option><option value="po">มี PO แล้ว (รับทราบ)</option><option value="nopo">ยังไม่มี PO (ค้างจ่าย)</option></select>
 </section>
@@ -98,7 +99,7 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  state = { api: localStorage.getItem('consign_api') || 'https://script.google.com/macros/s/AKfycbz61GyfTxjSoxCoRyKGxqiU5PfRzsNkwKl9kGarV4nm5wVLQE9mnjd--vrw7c8gDumZ/exec', syncMsg: '', user: localStorage.getItem('consign_user') || '', mergeMsg: '', tab: 'check', sq: '', po: null, price: null, bill: [], cols: {}, headers: [], query: '', onlyCon: true, filter: 'all', saved: {}, fileMsg: '', loadErr: '' };
+  state = { onlySup: false, api: localStorage.getItem('consign_api') || 'https://script.google.com/macros/s/AKfycbz61GyfTxjSoxCoRyKGxqiU5PfRzsNkwKl9kGarV4nm5wVLQE9mnjd--vrw7c8gDumZ/exec', syncMsg: '', user: localStorage.getItem('consign_user') || '', mergeMsg: '', tab: 'check', sq: '', po: null, price: null, bill: [], cols: {}, headers: [], query: '', onlyCon: true, filter: 'all', saved: {}, fileMsg: '', loadErr: '' };
   componentDidMount() {
     this.sync(); this.timer = setInterval(this.sync, 20000);
     try { const s = JSON.parse(localStorage.getItem('consign_saved') || '{}'); this.setState({ saved: s }); } catch (e) {}
@@ -136,14 +137,15 @@ class Component extends DCLogic {
     e.target.value = '';
   };
   compute() {
-    const { po, price, bill, cols, query, onlyCon, filter } = this.state; if (!po || !price || !cols.hn || !cols.code) return [];
+    const { po, price, bill, cols, query, onlyCon, onlySup, filter } = this.state; if (!po || !price || !cols.hn || !cols.code) return [];
     const toks = query.split(/[,;\n]+/).map(t => t.trim().toLowerCase()).filter(Boolean).map(t => ({ t, n: this.nh(t) })); const out = [];
     for (const r of bill) {
       const hn = String(r[cols.hn] || '').trim(), pname = String(r[cols.pname] || '').trim(); if (!hn && !pname) continue;
       if (toks.length && !toks.some(k => (k.n && /\d/.test(k.t) && this.nh(hn).includes(k.n)) || pname.toLowerCase().includes(k.t))) continue;
       const code = String(r[cols.code] || '').trim(); if (!code) continue;
       const vp = price.vp[code]; const cat = cols.cat ? String(r[cols.cat] || '').trim() : (vp ? vp[2] : '');
-      if (onlyCon && !(cat.toUpperCase() === 'CON' || (cat.toUpperCase() === 'SUP' && /^65/.test(code)))) continue;
+      const isCon = cat.toUpperCase() === 'CON', isSup = cat.toUpperCase() === 'SUP' && /^65/.test(code);
+      if (onlyCon || onlySup) { if (!((onlyCon && isCon) || (onlySup && isSup))) continue; } else if (!isCon && !isSup) continue;
       const p = po[this.nh(hn) + '|' + code];
       let cost = 0, src = '', poNo = '';
       if (price.last[code]) { cost = price.last[code][0]; src = 'SAP PO'; } else if (vp && vp[1]) { cost = vp[1]; src = 'VPRICELIST'; }
@@ -202,7 +204,7 @@ class Component extends DCLogic {
       sq: s.sq, onSq: e => this.setState({ sq: e.target.value }), savedRows, savedEmpty: savedRows.length ? '' : 'ยังไม่มีรายการที่บันทึก',
       dataStatus: s.loadErr ? 'โหลดข้อมูลไม่สำเร็จ' : ready ? 'SAP PO ที่มี HN: ' + s.poN + ' รายการ · VPRICELIST: ' + Object.keys(s.price.vp).length.toLocaleString() + ' รหัส' : 'กำลังโหลดข้อมูล SAP...',
       onFiles: this.onFiles, billingStatus: s.fileMsg || 'ยังไม่ได้อัปโหลดไฟล์', hasBilling: s.bill.length > 0, mapFields,
-      query: s.query, onQuery: e => this.setState({ query: e.target.value }), onlyCon: s.onlyCon, onCon: e => this.setState({ onlyCon: e.target.checked }), onFilter: e => this.setState({ filter: e.target.value }),
+      query: s.query, onQuery: e => this.setState({ query: e.target.value }), onlyCon: s.onlyCon, onCon: e => this.setState({ onlyCon: e.target.checked }), onlySup: s.onlySup, onSup: e => this.setState({ onlySup: e.target.checked }), onFilter: e => this.setState({ filter: e.target.value }),
       cTotal: all.length.toLocaleString(), cPo: (all.length - noPo.length).toLocaleString(), cNoPo: noPo.length.toLocaleString(), cAccrual: this.fmt(noPo.reduce((a, r) => a + r.cost * r.qty, 0)),
       shownNote: all.length > 300 ? 'แสดง 300 จาก ' + all.length.toLocaleString() + ' รายการ (กรองเพิ่มด้วย HN/ชื่อ)' : 'แสดง ' + all.length + ' รายการ',
       rows: rows.map(r => { const sv = !!s.saved[r.key]; return { ...r, qty: r.qty, cost: r.cost ? this.fmt(r.cost) : '', status: r.has ? 'มี PO · รับทราบ' : 'ค้างจ่าย', bg: r.has ? '#d9efe9' : '#f8e3d3', fg: r.has ? '#0b4f4b' : '#7a3a10', btnText: sv ? 'บันทึกแล้ว · ' + (s.saved[r.key].by || '') : 'บันทึก', btnBg: sv ? '#d9efe9' : '#fff', save: () => this.saveRows([r]) }; }),
