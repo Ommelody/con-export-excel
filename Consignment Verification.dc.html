@@ -87,6 +87,7 @@
 <button onClick="{{ clearLocs }}" style="font-family:inherit;font-size:13px;text-align:left;border:0;background:#e8f1ef;color:#274744;border-radius:6px;padding:6px 8px;cursor:pointer">ล้างตัวเลือก (แสดงทั้งหมด)</button>
 <sc-for list="{{ locOpts }}" as="o" hint-placeholder-count="3"><label style="display:flex;gap:8px;align-items:center;font-size:14px;padding:5px 8px;cursor:pointer"><input type="checkbox" checked="{{ o.on }}" onChange="{{ o.toggle }}"><span style="flex:1">{{ o.name }}</span><span style="color:#4b6764;font-size:12px">{{ o.n }}</span></label></sc-for>
 </div></details>
+<select onChange="{{ onSvf }}" style="font-family:inherit;font-size:15px;padding:10px 12px;border:1px solid #d5e3e0;border-radius:8px;background:#fff;color:#17302e"><option value="all" selected="{{ svfAll }}">บันทึก: ทั้งหมด</option><option value="unsaved" selected="{{ svfUn }}">ยังไม่ได้บันทึก</option><option value="saved" selected="{{ svfSv }}">บันทึกแล้ว</option></select>
 <select onChange="{{ onFilter }}" style="font-family:inherit;font-size:15px;padding:10px 12px;border:1px solid #d5e3e0;border-radius:8px;background:#fff;color:#17302e">
 <option value="all">ทุกสถานะ</option><option value="po">มี PO แล้ว (รับทราบ)</option><option value="nopo">ยังไม่มี PO (ค้างจ่าย)</option></select>
 </section>
@@ -200,7 +201,7 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  state = { dupOpen: false, refPop: null, sel: {}, lastRef: '', scf: {}, ssort: null, scolOpen: '', colOpen: '', sort: null, cf: {}, sCon: false, sSup: false, dCon: false, dSup: false, rQ: '', rCon: false, rSup: false, rLocs: [], rMonth: '', rMode: 'nopo', locs: [], codeQ: '', dFrom: '', dTo: '', onlySup: false, api: localStorage.getItem('consign_api') || 'https://script.google.com/macros/s/AKfycbz61GyfTxjSoxCoRyKGxqiU5PfRzsNkwKl9kGarV4nm5wVLQE9mnjd--vrw7c8gDumZ/exec', syncMsg: '', user: localStorage.getItem('consign_user') || '', mergeMsg: '', tab: 'check', sq: '', po: null, price: null, bill: [], cols: {}, headers: [], query: '', onlyCon: true, filter: 'all', saved: {}, fileMsg: '', loadErr: '' };
+  state = { svf: 'all', dupOpen: false, refPop: null, sel: {}, lastRef: '', scf: {}, ssort: null, scolOpen: '', colOpen: '', sort: null, cf: {}, sCon: false, sSup: false, dCon: false, dSup: false, rQ: '', rCon: false, rSup: false, rLocs: [], rMonth: '', rMode: 'nopo', locs: [], codeQ: '', dFrom: '', dTo: '', onlySup: false, api: localStorage.getItem('consign_api') || 'https://script.google.com/macros/s/AKfycbz61GyfTxjSoxCoRyKGxqiU5PfRzsNkwKl9kGarV4nm5wVLQE9mnjd--vrw7c8gDumZ/exec', syncMsg: '', user: localStorage.getItem('consign_user') || '', mergeMsg: '', tab: 'check', sq: '', po: null, price: null, bill: [], cols: {}, headers: [], query: '', onlyCon: true, filter: 'all', saved: {}, fileMsg: '', loadErr: '' };
   componentDidMount() {
     this.sync(); this.timer = setInterval(this.sync, 20000);
     try { const s = JSON.parse(localStorage.getItem('consign_saved') || '{}'); this.setState({ saved: s }); } catch (e) {}
@@ -278,7 +279,8 @@ class Component extends DCLogic {
   colVal(r, k) { return k === 'status' ? (r.has ? 'มี PO · รับทราบ' : 'ค้างจ่าย') : k === 'cost' ? (r.cost ? this.fmt(r.cost) : '') : String(r[k] == null ? '' : r[k]); }
   filtered() {
     const cf = this.state.cf || {}, ks = Object.keys(cf).filter(k => (cf[k] || []).length);
-    const rows = this.compute(); if (!ks.length) return rows;
+    const sf = this.state.svf; let rows = this.compute(); if (sf === 'unsaved') rows = rows.filter(r => !this.state.saved[r.key]); else if (sf === 'saved') rows = rows.filter(r => this.state.saved[r.key]);
+    if (!ks.length) return rows;
     return rows.filter(r => ks.every(k => cf[k].includes(this.colVal(r, k))));
   }
   headerVals(kind) {
@@ -484,6 +486,7 @@ class Component extends DCLogic {
       api: s.api, setApi: this.setApi, syncMsg: s.syncMsg || (s.api ? '' : 'ยังไม่ได้เชื่อม Google Sheet (บันทึกในเครื่องนี้เท่านั้น)'),
       locLabel: s.locs.length ? 'หน่วยงาน (' + s.locs.length + ')' : 'หน่วยงาน: ทั้งหมด', clearLocs: () => this.setState({ locs: [] }),
       locOpts: (() => { const c = {}; if (s.cols.loc) s.bill.forEach(r => { const k = String(r[s.cols.loc] || '').trim(); if (k) c[k] = (c[k] || 0) + 1; }); return Object.keys(c).sort().map(k => ({ name: k, n: c[k].toLocaleString(), on: s.locs.includes(k), toggle: () => this.setState({ locs: s.locs.includes(k) ? s.locs.filter(x => x !== k) : s.locs.concat(k) }) })); })(),
+      onSvf: e => this.setState({ svf: e.target.value }), svfAll: s.svf === 'all', svfUn: s.svf === 'unsaved', svfSv: s.svf === 'saved',
       pdfSaved: this.pdfSaved, pdfShown: this.pdfShown, exportSap: this.exportSap, codeQ: s.codeQ, onCodeQ: e => this.setState({ codeQ: e.target.value }), dFrom: s.dFrom, dTo: s.dTo, onFrom: e => this.setState({ dFrom: e.target.value }), onTo: e => this.setState({ dTo: e.target.value }),
       user: s.user, setUser: this.setUser, exportShare: this.exportShare, importShare: this.importShare, mergeMsg: s.mergeMsg,
       sq: s.sq, onSq: e => this.setState({ sq: e.target.value }), savedRows, savedEmpty: savedRows.length ? '' : 'ยังไม่มีรายการที่บันทึก',
