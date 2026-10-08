@@ -55,9 +55,9 @@
 </sc-for>
 </section>
 <section style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;overflow:hidden">
-<div style="padding:12px 16px;border-bottom:1px solid #d5e3e0;font-size:14px;color:#4b6764">สรุปรายคน แยกรายเดือน · {{ rNote }}</div>
+<div style="padding:12px 16px;border-bottom:1px solid #d5e3e0;font-size:14px;color:#4b6764">สรุปรายคน แยกรายเดือน · {{ rNote }} · คลิกแถวเพื่อดูรายการ</div>
 <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:14px"><thead><tr style="background:#e8f1ef;text-align:left;color:#274744"><th style="padding:10px 12px">เดือน</th><th style="padding:10px 12px">HN</th><th style="padding:10px 12px">ชื่อคนไข้</th><th style="padding:10px 12px;text-align:right">รายการ</th><th style="padding:10px 12px;text-align:right">ชิ้น</th><th style="padding:10px 12px;text-align:right">มูลค่า (บาท)</th></tr></thead><tbody>
-<sc-for list="{{ rRows }}" as="r" hint-placeholder-count="3"><tr style="border-top:1px solid #e3ece9"><td style="padding:9px 12px;white-space:nowrap">{{ r.month }}</td><td style="padding:9px 12px;white-space:nowrap">{{ r.hn }}</td><td style="padding:9px 12px">{{ r.name }}</td><td style="padding:9px 12px;text-align:right">{{ r.items }}</td><td style="padding:9px 12px;text-align:right">{{ r.qty }}</td><td style="padding:9px 12px;text-align:right">{{ r.val }}</td></tr></sc-for>
+<sc-for list="{{ rRows }}" as="r" hint-placeholder-count="3"><tr onClick="{{ r.open }}" style="border-top:1px solid #e3ece9;cursor:pointer" style-hover="outline:2px solid #0b6e69;outline-offset:-2px"><td style="padding:9px 12px;white-space:nowrap">{{ r.month }}</td><td style="padding:9px 12px;white-space:nowrap">{{ r.hn }}</td><td style="padding:9px 12px">{{ r.name }}</td><td style="padding:9px 12px;text-align:right">{{ r.items }}</td><td style="padding:9px 12px;text-align:right">{{ r.qty }}</td><td style="padding:9px 12px;text-align:right">{{ r.val }}</td></tr></sc-for>
 </tbody></table></div></section>
 </div>
 <div style="display:{{ checkDisp }};flex-direction:column;gap:20px">
@@ -91,9 +91,9 @@
 <option value="all">ทุกสถานะ</option><option value="po">มี PO แล้ว (รับทราบ)</option><option value="nopo">ยังไม่มี PO (ค้างจ่าย)</option></select>
 </section>
 <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
-<div style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;padding:14px 16px"><div style="font-size:13px;color:#4b6764">รายการที่แสดง</div><div style="font-size:26px;font-weight:600">{{ cTotal }}</div></div>
-<div style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;padding:14px 16px"><div style="font-size:13px;color:#4b6764">มี PO แล้ว (รับทราบ)</div><div style="font-size:26px;font-weight:600;color:#0b6e69">{{ cPo }}</div></div>
-<div style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;padding:14px 16px"><div style="font-size:13px;color:#4b6764">ยังไม่มี PO</div><div style="font-size:26px;font-weight:600;color:#a4501a">{{ cNoPo }}</div></div>
+<div style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;padding:14px 16px"><div style="font-size:13px;color:#4b6764">รายการที่แสดง</div><div style="font-size:26px;font-weight:600">{{ cTotal }}</div><div style="margin-top:8px;padding-top:8px;border-top:1px solid #e3ece9;font-size:14px;color:#274744">จำนวนชิ้น <b>{{ qTotal }}</b></div></div>
+<div style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;padding:14px 16px"><div style="font-size:13px;color:#4b6764">มี PO แล้ว (รับทราบ)</div><div style="font-size:26px;font-weight:600;color:#0b6e69">{{ cPo }}</div><div style="margin-top:8px;padding-top:8px;border-top:1px solid #e3ece9;font-size:14px;color:#274744">จำนวนชิ้น <b>{{ qPo }}</b></div></div>
+<div style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;padding:14px 16px"><div style="font-size:13px;color:#4b6764">ยังไม่มี PO</div><div style="font-size:26px;font-weight:600;color:#a4501a">{{ cNoPo }}</div><div style="margin-top:8px;padding-top:8px;border-top:1px solid #e3ece9;font-size:14px;color:#274744">จำนวนชิ้น <b>{{ qNoPo }}</b></div></div>
 <div style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;padding:14px 16px"><div style="font-size:13px;color:#4b6764">ค่าใช้จ่ายค้างจ่าย (บาท)</div><div style="font-size:26px;font-weight:600;color:#a4501a">{{ cAccrual }}</div><div style="margin-top:8px;padding-top:8px;border-top:1px solid #e3ece9;font-size:14px;color:#274744">บันทึกแล้ว {{ savedCount }} รายการ: <b style="color:#0b6e69">{{ savedAccrual }}</b> บาท</div></div>
 </section>
 <section style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;overflow:hidden">
@@ -116,7 +116,7 @@
 <sc-for list="{{ rows }}" as="r" hint-placeholder-count="5">
 <tr onClick="{{ r.open }}" style="border-top:1px solid #e3ece9;background:{{ r.rowBg }};cursor:pointer" style-hover="outline:2px solid #0b6e69;outline-offset:-2px">
 <td style="padding:9px 12px;white-space:nowrap">{{ r.hn }}</td><td style="padding:9px 12px">{{ r.pname }}</td><td style="padding:9px 12px;white-space:nowrap">{{ r.date }}</td><td style="padding:9px 12px;white-space:nowrap">{{ r.code }}</td><td style="padding:9px 12px">{{ r.item }}</td><td style="padding:9px 12px;text-align:right">{{ r.qty }}</td><td style="padding:9px 12px;text-align:right">{{ r.cost }}</td><td style="padding:9px 12px;color:#4b6764">{{ r.src }}</td><td style="padding:9px 12px">{{ r.vendor }}</td><td style="padding:9px 12px">{{ r.po }}</td>
-<td style="padding:9px 12px;white-space:nowrap"><span style="padding:3px 10px;border-radius:99px;font-size:13px;font-weight:500;background:{{ r.bg }};color:{{ r.fg }}">{{ r.status }}</span></td>
+<td style="padding:9px 12px;white-space:nowrap"><span style="padding:3px 10px;border-radius:99px;font-size:13px;font-weight:500;background:{{ r.bg }};color:{{ r.fg }}">{{ r.status }}</span><div style="font-size:12px;color:#a4501a;white-space:normal;max-width:190px;margin-top:3px">{{ r.hint }}</div></td>
 <td style="padding:9px 12px;white-space:nowrap"><label onClick="{{ r.stopc }}" style="display:flex;gap:6px;align-items:center;cursor:pointer"><input type="checkbox" disabled="{{ r.locked }}" checked="{{ r.checked }}" onChange="{{ r.tog }}" style="width:18px;height:18px"><span style="font-size:12px;color:#0b6e69;font-weight:600">{{ r.refTxt }}</span></label></td>
 </tr>
 </sc-for>
@@ -186,7 +186,7 @@
 <button onClick="{{ dSelAll }}" style="font-family:inherit;font-size:14px;background:#fff;color:#274744;border:1px solid #b9cfcb;border-radius:8px;padding:8px 14px;cursor:pointer">เลือกทั้งหมด</button><button onClick="{{ dSaveSel }}" style="font-family:inherit;font-size:14px;font-weight:500;background:#0b6e69;color:#fff;border:0;border-radius:8px;padding:8px 14px;cursor:pointer">บันทึกที่เลือก ({{ dSelCount }})</button>
 <button onClick="{{ close }}" style="font-family:inherit;font-size:18px;background:#e8f1ef;color:#274744;border:0;border-radius:8px;width:38px;height:38px;cursor:pointer">✕</button></div></div>
 <div style="overflow:auto"><table style="width:100%;border-collapse:collapse;font-size:14px"><thead><tr style="background:#e8f1ef;text-align:left;color:#274744;position:sticky;top:0"><th style="padding:10px 12px">วันที่</th><th style="padding:10px 12px">Item code</th><th style="padding:10px 12px">รายการ</th><th style="padding:10px 12px;text-align:right">จำนวน</th><th style="padding:10px 12px;text-align:right">ราคาทุน</th><th style="padding:10px 12px">แหล่งราคา</th><th style="padding:10px 12px">บริษัทผู้ขาย</th><th style="padding:10px 12px">เลข PO</th><th style="padding:10px 12px">สถานะ</th><th style="padding:10px 12px"></th></tr></thead><tbody>
-<sc-for list="{{ dRowsV }}" as="r" hint-placeholder-count="3"><tr style="border-top:1px solid #e3ece9;background:{{ r.rowBg }}"><td style="padding:9px 12px;white-space:nowrap">{{ r.date }}</td><td style="padding:9px 12px;white-space:nowrap">{{ r.code }}</td><td style="padding:9px 12px">{{ r.item }}</td><td style="padding:9px 12px;text-align:right">{{ r.qty }}</td><td style="padding:9px 12px;text-align:right">{{ r.cost }}</td><td style="padding:9px 12px;color:#4b6764">{{ r.src }}</td><td style="padding:9px 12px">{{ r.vendor }}</td><td style="padding:9px 12px">{{ r.po }}</td><td style="padding:9px 12px;white-space:nowrap"><span style="padding:3px 10px;border-radius:99px;font-size:13px;font-weight:500;background:{{ r.bg }};color:{{ r.fg }}">{{ r.status }}</span></td><td style="padding:9px 12px;white-space:nowrap"><label style="display:flex;gap:6px;align-items:center;cursor:pointer"><input type="checkbox" disabled="{{ r.locked }}" checked="{{ r.checked }}" onChange="{{ r.tog }}" style="width:18px;height:18px"><span style="font-size:12px;color:#0b6e69;font-weight:600">{{ r.refTxt }}</span></label></td></tr></sc-for>
+<sc-for list="{{ dRowsV }}" as="r" hint-placeholder-count="3"><tr style="border-top:1px solid #e3ece9;background:{{ r.rowBg }}"><td style="padding:9px 12px;white-space:nowrap">{{ r.date }}</td><td style="padding:9px 12px;white-space:nowrap">{{ r.code }}</td><td style="padding:9px 12px">{{ r.item }}</td><td style="padding:9px 12px;text-align:right">{{ r.qty }}</td><td style="padding:9px 12px;text-align:right">{{ r.cost }}</td><td style="padding:9px 12px;color:#4b6764">{{ r.src }}</td><td style="padding:9px 12px">{{ r.vendor }}</td><td style="padding:9px 12px">{{ r.po }}</td><td style="padding:9px 12px;white-space:nowrap"><span style="padding:3px 10px;border-radius:99px;font-size:13px;font-weight:500;background:{{ r.bg }};color:{{ r.fg }}">{{ r.status }}</span><div style="font-size:12px;color:#a4501a;white-space:normal;max-width:190px;margin-top:3px">{{ r.hint }}</div></td><td style="padding:9px 12px;white-space:nowrap"><label style="display:flex;gap:6px;align-items:center;cursor:pointer"><input type="checkbox" disabled="{{ r.locked }}" checked="{{ r.checked }}" onChange="{{ r.tog }}" style="width:18px;height:18px"><span style="font-size:12px;color:#0b6e69;font-weight:600">{{ r.refTxt }}</span></label></td></tr></sc-for>
 </tbody></table></div></div></div></div>
 </x-dc>
 <script type="text/x-dc" data-dc-script>
@@ -202,7 +202,7 @@ class Component extends DCLogic {
     }).catch(() => {});
     Promise.all([fetch('data/po_hn.json').then(r => r.json()), fetch('data/price.json').then(r => r.json())])
       .then(([po, price]) => {
-        const idx = {}; po.forEach(p => { idx[this.nh(p[4]) + '|' + p[2]] = p; });
+        const idx = {}; this.poByHn = {}; po.forEach(p => { const h = this.nh(p[4]); idx[h + '|' + p[2]] = p; (this.poByHn[h] = this.poByHn[h] || []).push(p); });
         this.setState({ po: idx, poN: po.length, price });
       }).catch(e => this.setState({ loadErr: String(e) }));
   }
@@ -294,10 +294,10 @@ class Component extends DCLogic {
     const ws = XLSX.utils.json_to_sheet(data); ws['!cols'] = Object.keys(data[0]).map(k => ({ wch: Math.min(100, Math.max(k.length, ...data.slice(0, 2000).map(r => String(r[k]).length)) + 3) }));
     const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'รายการ'); XLSX.writeFile(wb, name + '_' + new Date().toISOString().slice(0, 10) + '.xlsx');
   }
-  openDetail(hn, name) {
+  openDetail(hn, name, month) {
     const k = this.nh(hn);
     const rows = this.compute({ query: '', filter: 'all', codeQ: '', dFrom: '', dTo: '', locs: [], onlyCon: false, onlySup: false }).filter(r => this.nh(r.hn) === k).sort((a, b) => a.date < b.date ? -1 : 1);
-    this.setState({ dHn: hn, dName: name, dRows: rows });
+    this.setState({ dHn: hn, dName: name + (month ? ' · ' + this.mlabel(month) : ''), dRows: month ? rows.filter(r => (r.date || '').slice(0, 7) === month) : rows });
   }
   detailVals() {
     const s = this.state, open = !!s.dHn, R = (s.dRows || []).filter(r => this.catOk(r, s.dCon, s.dSup));
@@ -313,6 +313,7 @@ class Component extends DCLogic {
       dRowsV: R.map(r => { const sv = !!s.saved[r.key]; return { ...r, locked: sv, checked: sv || !!s.sel[r.key], refTxt: sv ? s.saved[r.key].ref || '' : '', tog: () => this.setState({ sel: { ...this.state.sel, [r.key]: !this.state.sel[r.key] } }), cost: r.cost ? this.fmt(r.cost) : '', status: r.has ? 'มี PO · รับทราบ' : 'ค้างจ่าย', bg: r.has ? '#d9efe9' : '#f8e3d3', fg: r.has ? '#0b4f4b' : '#7a3a10', rowBg: r.has ? '#fff' : '#fff', btnText: sv ? 'บันทึกแล้ว' : 'บันทึก', btnBg: sv ? '#d9efe9' : '#fff', save: () => this.saveRows([r]) }; })
     };
   }
+  billKeys() { const b = this.state.bill, c = this.state.cols; if (this._bk && this._bkb === b) return this._bk; const s = new Set(); b.forEach(r => s.add(this.nh(r[c.hn]) + '|' + String(r[c.code] || '').trim())); this._bk = s; this._bkb = b; return s; }
   compute(ovr) {
     const { po, price, bill, cols, query, onlyCon, onlySup, filter, codeQ, dFrom, dTo } = { ...this.state, ...(ovr || {}) }; const locs = (ovr && ovr.locs) || this.state.locs || []; const ctoks = codeQ.split(/[,;\s]+/).map(t => t.trim().toLowerCase()).filter(Boolean); if (!po || !price || !cols.hn || !cols.code) return [];
     const toks = query.split(/[,;\n]+/).map(t => t.trim().toLowerCase()).filter(Boolean).map(t => ({ t, n: this.nh(t) })); const out = [];
@@ -333,9 +334,10 @@ class Component extends DCLogic {
       let vendor = p ? p[10] : (price.vend && price.vend[code]) || ''; if (/^V[PT]\d+$/.test(vendor)) vendor = '';
       if (!cost && r.Cost) { cost = this.num(r.Cost); src = 'HIS Cost'; }
       if (p) { poNo = p[0]; cost = p[7]; src = 'SAP PO (HN นี้)'; }
+      let hint = ''; if (!p && cost && this.poByHn) { const L = this.poByHn[this.nh(hn)]; if (L) { const bk = this.billKeys(), c = L.find(x => x[2] !== code && Math.abs(x[7] - cost) < 0.01 && !bk.has(this.nh(hn) + '|' + x[2])); if (c) hint = 'อาจตรงกับ PO ' + c[0] + ' (รหัส ' + c[2] + ' ราคาเท่ากัน)'; } }
       if (filter === 'po' && !p || filter === 'nopo' && p) continue;
       let d = r[cols.date]; d = d instanceof Date ? d.toISOString().slice(0, 10) : String(d || '');
-      out.push({ cat: isSup ? 'SUP' : 'CON', key: this.nh(hn) + '|' + code + '|' + d + '|' + (r.__f || ''), hn, pname, date: d, code, item: String((vp && vp[0]) || r[cols.item] || ''), qty: this.num(r[cols.qty]) || 1, cost, src, vendor, po: poNo, has: !!p });
+      out.push({ cat: isSup ? 'SUP' : 'CON', key: this.nh(hn) + '|' + code + '|' + d + '|' + (r.__f || ''), hn, pname, date: d, code, item: String((vp && vp[0]) || r[cols.item] || ''), qty: this.num(r[cols.qty]) || 1, cost, src, vendor, hint, po: poNo, has: !!p });
     }
     return out;
   }
@@ -449,7 +451,7 @@ class Component extends DCLogic {
           repMonthOpts: [{ v: '', t: 'ทุกเดือน', sel: !s.rMonth }].concat(R.months.map(x => ({ v: x.m, t: this.mlabel(x.m), sel: s.rMonth === x.m }))), onRMonth: e => this.setState({ rMonth: e.target.value }), onRMode: e => this.setState({ rMode: e.target.value }), rModeNo: s.rMode === 'nopo', rModeAll: s.rMode === 'all',
           rTotal: this.fmt(R.selM.reduce((a, x) => a + x.val, 0)), rMonths: R.selM.length, rPts: new Set(R.rows.filter(r => !s.rMonth || (r.date || '').slice(0, 7) === s.rMonth).map(r => r.hn)).size, rItems: R.selM.reduce((a, x) => a + x.items, 0).toLocaleString(),
           rBars: R.months.map(x => ({ label: this.mlabel(x.m), val: this.fmt(x.val), pct: Math.max(1, x.val / mx * 100) + '%', sub: x.pts.size + ' คน · ' + x.items + ' รายการ', bg: s.rMonth === x.m ? '#a4501a' : '#0b6e69', pick: () => this.setState({ rMonth: s.rMonth === x.m ? '' : x.m }) })),
-          rRows: R.selP.slice(0, 500).map(p => ({ month: this.mlabel(p.m), hn: p.hn, name: p.name, items: p.items, qty: p.qty, val: this.fmt(p.val) })), rNote: R.selP.length > 500 ? 'แสดง 500 จาก ' + R.selP.length + ' แถว (Excel/PDF มีครบ)' : R.selP.length + ' แถว' }; })() : { repMonthOpts: [], rBars: [], rRows: [], rLocOpts: [], rQ: '', rCon: false, rSup: false, rLocLabel: '', onRQ: () => {}, onRCon: () => {}, onRSup: () => {}, clearRLocs: () => {}, rTotal: '', rMonths: '', rPts: '', rItems: '', rNote: '', rModeNo: true, rModeAll: false, onRMonth: () => {}, onRMode: () => {} }),
+          rRows: R.selP.slice(0, 500).map(p => ({ open: () => this.openDetail(p.hn, p.name, p.m), month: this.mlabel(p.m), hn: p.hn, name: p.name, items: p.items, qty: p.qty, val: this.fmt(p.val) })), rNote: R.selP.length > 500 ? 'แสดง 500 จาก ' + R.selP.length + ' แถว (Excel/PDF มีครบ)' : R.selP.length + ' แถว' }; })() : { repMonthOpts: [], rBars: [], rRows: [], rLocOpts: [], rQ: '', rCon: false, rSup: false, rLocLabel: '', onRQ: () => {}, onRCon: () => {}, onRSup: () => {}, clearRLocs: () => {}, rTotal: '', rMonths: '', rPts: '', rItems: '', rNote: '', rModeNo: true, rModeAll: false, onRMonth: () => {}, onRMode: () => {} }),
       pdfReport: this.pdfReport, exportReportXlsx: this.exportReportXlsx,
       api: s.api, setApi: this.setApi, syncMsg: s.syncMsg || (s.api ? '' : 'ยังไม่ได้เชื่อม Google Sheet (บันทึกในเครื่องนี้เท่านั้น)'),
       locLabel: s.locs.length ? 'หน่วยงาน (' + s.locs.length + ')' : 'หน่วยงาน: ทั้งหมด', clearLocs: () => this.setState({ locs: [] }),
@@ -460,7 +462,7 @@ class Component extends DCLogic {
       dataStatus: s.loadErr ? 'โหลดข้อมูลไม่สำเร็จ' : ready ? 'SAP PO ที่มี HN: ' + s.poN + ' รายการ · VPRICELIST: ' + Object.keys(s.price.vp).length.toLocaleString() + ' รหัส' : 'กำลังโหลดข้อมูล SAP...',
       onFiles: this.onFiles, billingStatus: s.fileMsg || 'ยังไม่ได้อัปโหลดไฟล์', hasBilling: s.bill.length > 0, mapFields,
       query: s.query, onQuery: e => this.setState({ query: e.target.value }), onlyCon: s.onlyCon, onCon: e => this.setState({ onlyCon: e.target.checked }), onlySup: s.onlySup, onSup: e => this.setState({ onlySup: e.target.checked }), onFilter: e => this.setState({ filter: e.target.value }),
-      cTotal: all.length.toLocaleString(), cPo: (all.length - noPo.length).toLocaleString(), cNoPo: noPo.length.toLocaleString(), cAccrual: this.fmt(noPo.reduce((a, r) => a + r.cost * r.qty, 0)),
+      qTotal: all.reduce((a, r) => a + r.qty, 0).toLocaleString(), qPo: all.filter(r => r.has).reduce((a, r) => a + r.qty, 0).toLocaleString(), qNoPo: noPo.reduce((a, r) => a + r.qty, 0).toLocaleString(), cTotal: all.length.toLocaleString(), cPo: (all.length - noPo.length).toLocaleString(), cNoPo: noPo.length.toLocaleString(), cAccrual: this.fmt(noPo.reduce((a, r) => a + r.cost * r.qty, 0)),
       shownNote: all.length > 300 ? 'แสดง 300 จาก ' + all.length.toLocaleString() + ' รายการ (กรองเพิ่มด้วย HN/ชื่อ)' : 'แสดง ' + all.length + ' รายการ',
       rows: rows.map(r => { const sv = !!s.saved[r.key]; return { ...r, rowBg: r.has ? '#fff' : '#fff', qty: r.qty, cost: r.cost ? this.fmt(r.cost) : '', status: r.has ? 'มี PO · รับทราบ' : 'ค้างจ่าย', bg: r.has ? '#d9efe9' : '#f8e3d3', fg: r.has ? '#0b4f4b' : '#7a3a10', btnText: sv ? 'บันทึกแล้ว · ' + (s.saved[r.key].by || '') : 'บันทึก', btnBg: sv ? '#d9efe9' : '#fff', locked: sv, checked: sv || !!s.sel[r.key], refTxt: sv ? s.saved[r.key].ref || '' : '', stopc: (e) => e.stopPropagation(), tog: (e) => { e.stopPropagation(); this.setState({ sel: { ...this.state.sel, [r.key]: !this.state.sel[r.key] } }); }, open: () => this.openDetail(r.hn, r.pname) }; }),
       ...this.detailVals(), ...this.sumVals(), ...this.refVals(),
