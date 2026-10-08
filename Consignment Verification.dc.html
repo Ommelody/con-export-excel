@@ -341,9 +341,10 @@ class Component extends DCLogic {
     }
     return out;
   }
+  ls(o) { try { if (!this.api()) localStorage.setItem('consign_saved', JSON.stringify(o)); else localStorage.removeItem('consign_saved'); } catch (e) {} }
   api() { return (this.state.api || '').trim(); }
   setApi = (e) => { localStorage.setItem('consign_api', e.target.value); this.setState({ api: e.target.value }, () => this.sync()); };
-  applyRemote(j, post) { const s = {}; (j.rows || []).forEach(r => { r.hn = String(r.hn); r.code = String(r.code); r.qty = this.num(r.qty); r.cost = this.num(r.cost); if (!r.ref && this.state.saved[r.key] && this.state.saved[r.key].ref) r.ref = this.state.saved[r.key].ref; s[r.key] = r; }); localStorage.setItem('consign_saved', JSON.stringify(s)); const rp = this.state.refPop; let pop = rp; if (post && rp && rp.pending) { const ref = j.ref || rp.prov; pop = { ...rp, ref, pending: false }; (rp.keys || []).forEach(k => { if (s[k]) s[k].ref = ref; }); localStorage.setItem('consign_saved', JSON.stringify(s)); }
+  applyRemote(j, post) { const s = {}; (j.rows || []).forEach(r => { r.hn = String(r.hn); r.code = String(r.code); r.qty = this.num(r.qty); r.cost = this.num(r.cost); if (!r.ref && this.state.saved[r.key] && this.state.saved[r.key].ref) r.ref = this.state.saved[r.key].ref; s[r.key] = r; }); this.ls(s); const rp = this.state.refPop; let pop = rp; if (post && rp && rp.pending) { const ref = j.ref || rp.prov; pop = { ...rp, ref, pending: false }; (rp.keys || []).forEach(k => { if (s[k]) s[k].ref = ref; }); this.ls(s); }
     this.setState({ saved: s, refPop: pop, ...(post && pop && pop.ref ? { lastRef: pop.ref + ' · ' + pop.n + ' รายการ' } : {}), syncMsg: 'ซิงก์กับ Google Sheet ล่าสุด ' + new Date().toLocaleTimeString('th-TH') }); }
   sync = () => { const u = this.api(); if (!u) { this.setState({ syncMsg: '' }); return; } fetch(u).then(r => r.json()).then(j => j.ok ? this.applyRemote(j) : Promise.reject(j.error)).catch(e => this.setState({ syncMsg: 'ซิงก์ไม่สำเร็จ: ' + e })); };
   push(body) { const u = this.api(); if (!u) return; this.setState({ syncMsg: 'กำลังส่งข้อมูล...' }); fetch(u, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) }).then(r => r.json()).then(j => j.ok ? this.applyRemote(j, true) : Promise.reject(j.error)).catch(e => this.setState({ syncMsg: 'ส่งข้อมูลไม่สำเร็จ: ' + e, refPop: this.state.refPop ? { ...this.state.refPop, pending: false, fail: true } : null })); }
@@ -356,7 +357,7 @@ class Component extends DCLogic {
   importShare = async (e) => {
     const fs = [...e.target.files]; const s = { ...this.state.saved }; let add = 0, dup = 0;
     for (const f of fs) { try { const j = JSON.parse(await f.text()); (j.rows || []).forEach(r => { if (s[r.key]) { dup++; if ((r.at || '') > (s[r.key].at || '')) s[r.key] = r; } else { s[r.key] = r; add++; } }); } catch (x) {} }
-    localStorage.setItem('consign_saved', JSON.stringify(s)); this.setState({ saved: s, mergeMsg: 'รวมไฟล์แล้ว: เพิ่มใหม่ ' + add + ' · ซ้ำ ' + dup + ' รายการ' }); e.target.value = '';
+    this.ls(s); this.setState({ saved: s, mergeMsg: 'รวมไฟล์แล้ว: เพิ่มใหม่ ' + add + ' · ซ้ำ ' + dup + ' รายการ' }); e.target.value = '';
   };
   nextRef() { const n = Object.values(this.state.saved).map(r => parseInt(String(r.ref || '').replace(/\D/g, ''), 10) || 0); return 'C' + String(Math.max(0, ...n) + 1).padStart(4, '0'); }
   saveRows(list) {
@@ -364,7 +365,7 @@ class Component extends DCLogic {
     const s = { ...this.state.saved }, by = this.state.user || 'ไม่ระบุชื่อ', at = new Date().toISOString(), ref = this.nextRef();
     list.forEach(r => { s[r.key] = { ...r, by, at, ref }; });
     this.push({ action: 'upsert', batchRef: true, rows: list.map(r => ({ ...r, by, at, ref })) });
-    localStorage.setItem('consign_saved', JSON.stringify(s)); this.setState({ saved: s, sel: {}, lastRef: ref + ' · ' + list.length + ' รายการ', refPop: { ref, prov: ref, pending: !!this.api(), n: list.length, val: list.reduce((a, r) => a + (r.has ? 0 : r.cost * r.qty), 0), keys: list.map(r => r.key), by, at, copied: false } });
+    this.ls(s); this.setState({ saved: s, sel: {}, lastRef: ref + ' · ' + list.length + ' รายการ', refPop: { ref, prov: ref, pending: !!this.api(), n: list.length, val: list.reduce((a, r) => a + (r.has ? 0 : r.cost * r.qty), 0), keys: list.map(r => r.key), by, at, copied: false } });
   }
   printPatients(list, title) {
     if (!list.length) { alert('ไม่มีรายการ'); return; }
@@ -438,7 +439,7 @@ class Component extends DCLogic {
     }));
     const ready = !!s.po && !!s.price;
     const sq = s.sq.trim().toLowerCase(), isC = s.tab === 'check';
-    const savedRows = this.savedView().map(r => ({ ...r, cost: r.cost ? this.fmt(r.cost) : '', status: r.has ? 'มี PO · รับทราบ' : 'ค้างจ่าย', bg: r.has ? '#d9efe9' : '#f8e3d3', fg: r.has ? '#0b4f4b' : '#7a3a10', remove: () => { const n = { ...this.state.saved }; delete n[r.key]; this.push({ action: 'delete', keys: [r.key] }); localStorage.setItem('consign_saved', JSON.stringify(n)); this.setState({ saved: n }); } }));
+    const savedRows = this.savedView().map(r => ({ ...r, cost: r.cost ? this.fmt(r.cost) : '', status: r.has ? 'มี PO · รับทราบ' : 'ค้างจ่าย', bg: r.has ? '#d9efe9' : '#f8e3d3', fg: r.has ? '#0b4f4b' : '#7a3a10', remove: () => { const n = { ...this.state.saved }; delete n[r.key]; this.push({ action: 'delete', keys: [r.key] }); this.ls(n); this.setState({ saved: n }); } }));
     return {
       goCheck: () => this.setState({ tab: 'check' }), goSaved: () => this.setState({ tab: 'saved' }), goReport: () => this.setState({ tab: 'report' }),
       checkDisp: isC ? 'flex' : 'none', savedDisp: s.tab === 'saved' ? 'flex' : 'none', reportDisp: s.tab === 'report' ? 'flex' : 'none',
