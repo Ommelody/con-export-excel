@@ -21,7 +21,28 @@
 <div style="display:flex;gap:4px;border-bottom:2px solid #d5e3e0">
 <button onClick="{{ goCheck }}" style="font-family:inherit;font-size:16px;font-weight:500;padding:10px 22px;border:0;background:{{ tabCheckBg }};color:{{ tabCheckFg }};border-radius:8px 8px 0 0;cursor:pointer">ตรวจสอบ</button>
 <button onClick="{{ goSaved }}" style="font-family:inherit;font-size:16px;font-weight:500;padding:10px 22px;border:0;background:{{ tabSavedBg }};color:{{ tabSavedFg }};border-radius:8px 8px 0 0;cursor:pointer">รายการที่บันทึก ({{ savedCount }})</button>
+<button onClick="{{ goExtra }}" style="font-family:inherit;font-size:16px;font-weight:500;padding:10px 22px;border:0;background:{{ tabExBg }};color:{{ tabExFg }};border-radius:8px 8px 0 0;cursor:pointer">ตรวจไฟล์เพิ่มเติม ({{ exCount }})</button>
 <button onClick="{{ goReport }}" style="font-family:inherit;font-size:16px;font-weight:500;padding:10px 22px;border:0;background:{{ tabRepBg }};color:{{ tabRepFg }};border-radius:8px 8px 0 0;cursor:pointer">รายงานรายเดือน</button>
+</div>
+<div style="display:{{ exDisp }};flex-direction:column;gap:16px">
+<section style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;padding:14px 20px;display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+<div style="flex:1 1 420px;font-size:14px;color:#4b6764">ไฟล์ "ตรวจสอบ consign เพิ่มเติม" เทียบกับ billing ด้วย HN + Item code + จำนวน (ไม่เทียบวันที่) แถวที่ตรวจผ่านถูกติ๊กไว้ แถวที่มีปัญหาไม่ติ๊ก ตรวจแล้วกด "นำเข้า HN นี้" ทีละ HN รายการจะเข้าไปอยู่ในรายการที่บันทึกพร้อมเลข Ref</div>
+<select onChange="{{ onExF }}" style="font-family:inherit;font-size:15px;padding:9px 12px;border:1px solid #9fbbb6;border-radius:8px;background:#fff;color:#17302e"><option value="todo" selected="{{ exFTodo }}">HN ที่ยังนำเข้าไม่ครบ</option><option value="bad" selected="{{ exFBad }}">เฉพาะ HN ที่มีรายการต้องตรวจ</option><option value="all" selected="{{ exFAll }}">ทั้งหมด</option></select>
+</section>
+<section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px">
+<div style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;padding:14px 16px"><div style="font-size:13px;color:#4b6764">จำนวน HN</div><div style="font-size:26px;font-weight:600">{{ exHnN }}</div></div>
+<div style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;padding:14px 16px"><div style="font-size:13px;color:#4b6764">รายการทั้งหมด</div><div style="font-size:26px;font-weight:600">{{ exTot }}</div></div>
+<div style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;padding:14px 16px"><div style="font-size:13px;color:#4b6764">นำเข้าแล้ว</div><div style="font-size:26px;font-weight:600;color:#0b6e69">{{ exDone }}</div></div>
+<div style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;padding:14px 16px"><div style="font-size:13px;color:#4b6764">ต้องตรวจ (ยังไม่นำเข้า)</div><div style="font-size:26px;font-weight:600;color:#a4501a">{{ exBad }}</div></div>
+</section>
+<sc-for list="{{ exGroups }}" as="g" hint-placeholder-count="2">
+<section style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;overflow:hidden">
+<div style="padding:12px 16px;border-bottom:1px solid #d5e3e0;display:flex;gap:14px;align-items:center;flex-wrap:wrap;background:#f3f8f7"><div style="font-size:16px;font-weight:600">{{ g.hn }}</div><div style="flex:1;font-size:15px">{{ g.name }} <span style="color:#4b6764;font-size:13px">· {{ g.info }}</span></div><span style="padding:3px 10px;border-radius:99px;font-size:13px;font-weight:500;background:{{ g.badBg }};color:{{ g.badFg }}">{{ g.badTxt }}</span>
+<button onClick="{{ g.doImport }}" disabled="{{ g.btnDis }}" style="font-family:inherit;font-size:14px;font-weight:500;background:{{ g.btnBg }};color:#fff;border:0;border-radius:8px;padding:8px 16px;cursor:pointer">{{ g.btn }}</button></div>
+<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:14px"><thead><tr style="text-align:left;color:#274744;background:#fafcfb"><th style="padding:8px 12px"></th><th style="padding:8px 12px">แถว</th><th style="padding:8px 12px">Item code</th><th style="padding:8px 12px">รายการ</th><th style="padding:8px 12px">วันที่ (ไฟล์)</th><th style="padding:8px 12px;text-align:right">จำนวน</th><th style="padding:8px 12px;text-align:right">ราคา (ไฟล์)</th><th style="padding:8px 12px;text-align:right">ราคา (billing)</th><th style="padding:8px 12px">ผลตรวจ</th></tr></thead><tbody>
+<sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="2"><tr style="border-top:1px solid #e3ece9"><td style="padding:8px 12px"><input type="checkbox" disabled="{{ r.locked }}" checked="{{ r.checked }}" onChange="{{ r.tog }}" style="width:18px;height:18px"></td><td style="padding:8px 12px;color:#4b6764">{{ r.n }}</td><td style="padding:8px 12px;white-space:nowrap">{{ r.code }}</td><td style="padding:8px 12px">{{ r.item }}</td><td style="padding:8px 12px;white-space:nowrap">{{ r.date }}</td><td style="padding:8px 12px;text-align:right">{{ r.qty }}</td><td style="padding:8px 12px;text-align:right">{{ r.fcost }}</td><td style="padding:8px 12px;text-align:right">{{ r.bcost }}</td><td style="padding:8px 12px"><span style="padding:3px 10px;border-radius:99px;font-size:13px;font-weight:500;background:{{ r.stBg }};color:{{ r.stFg }}">{{ r.st }}</span><div style="font-size:12px;color:#4b6764;max-width:300px;white-space:normal;margin-top:3px">{{ r.note }}</div></td></tr></sc-for>
+</tbody></table></div></section>
+</sc-for>
 </div>
 <div style="display:{{ reportDisp }};flex-direction:column;gap:16px">
 <section style="background:#fff;border:1px solid #d5e3e0;border-radius:10px;padding:14px 20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;position:relative;z-index:30">
@@ -201,9 +222,10 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  state = { svf: 'all', dupOpen: false, refPop: null, sel: {}, lastRef: '', scf: {}, ssort: null, scolOpen: '', colOpen: '', sort: null, cf: {}, sCon: false, sSup: false, dCon: false, dSup: false, rQ: '', rCon: false, rSup: false, rLocs: [], rMonth: '', rMode: 'nopo', locs: [], codeQ: '', dFrom: '', dTo: '', onlySup: false, api: localStorage.getItem('consign_api') || 'https://script.google.com/macros/s/AKfycbz61GyfTxjSoxCoRyKGxqiU5PfRzsNkwKl9kGarV4nm5wVLQE9mnjd--vrw7c8gDumZ/exec', syncMsg: '', user: localStorage.getItem('consign_user') || '', mergeMsg: '', tab: 'check', sq: '', po: null, price: null, bill: [], cols: {}, headers: [], query: '', onlyCon: true, filter: 'all', saved: {}, fileMsg: '', loadErr: '' };
+  state = { extra: null, exSel: {}, exF: 'todo', svf: 'all', dupOpen: false, refPop: null, sel: {}, lastRef: '', scf: {}, ssort: null, scolOpen: '', colOpen: '', sort: null, cf: {}, sCon: false, sSup: false, dCon: false, dSup: false, rQ: '', rCon: false, rSup: false, rLocs: [], rMonth: '', rMode: 'nopo', locs: [], codeQ: '', dFrom: '', dTo: '', onlySup: false, api: localStorage.getItem('consign_api') || 'https://script.google.com/macros/s/AKfycbz61GyfTxjSoxCoRyKGxqiU5PfRzsNkwKl9kGarV4nm5wVLQE9mnjd--vrw7c8gDumZ/exec', syncMsg: '', user: localStorage.getItem('consign_user') || '', mergeMsg: '', tab: 'check', sq: '', po: null, price: null, bill: [], cols: {}, headers: [], query: '', onlyCon: true, filter: 'all', saved: {}, fileMsg: '', loadErr: '' };
   componentDidMount() {
-    this.sync(); this.timer = setInterval(this.sync, 20000);
+    fetch('data/extra.json').then(r => r.json()).then(a => this.setState({ extra: a })).catch(() => {});
+    this.sync(); this.timer = setInterval(() => { if (!document.hidden) this.sync(); }, 5000); this.vis = () => { if (!document.hidden) this.sync(); }; document.addEventListener('visibilitychange', this.vis); window.addEventListener('focus', this.vis);
     try { const s = JSON.parse(localStorage.getItem('consign_saved') || '{}'); this.setState({ saved: s }); } catch (e) {}
     Promise.all([1, 2, 3, 4].map(i => fetch('data/billing_' + i + '.json').then(r => r.json()))).then(ps => {
       const b = [].concat(...ps).map(a => ({ Date: a[0], HN: a[1], 'Patient Name': a[2], Categorycode: a[3], itemcode: a[4], itemname: a[5], QTY: a[6], Cost: a[7], 'bill number': a[8], LocFromName: a[9], __f: 'dailysale' }));
@@ -364,7 +386,7 @@ class Component extends DCLogic {
     this.setState({ saved: s, refPop: pop, ...(post && pop && pop.ref ? { lastRef: pop.ref + ' · ' + pop.n + ' รายการ' } : {}), syncMsg: 'ซิงก์กับ Google Sheet ล่าสุด ' + new Date().toLocaleTimeString('th-TH') }); }
   sync = () => { const u = this.api(); if (!u) { this.setState({ syncMsg: '' }); return; } fetch(u).then(r => r.json()).then(j => j.ok ? this.applyRemote(j) : Promise.reject(j.error)).catch(e => this.setState({ syncMsg: 'ซิงก์ไม่สำเร็จ: ' + e })); };
   push(body) { const u = this.api(); if (!u) return; this.setState({ syncMsg: 'กำลังส่งข้อมูล...' }); fetch(u, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) }).then(r => r.json()).then(j => j.ok ? this.applyRemote(j, true) : Promise.reject(j.error)).catch(e => this.setState({ syncMsg: 'ส่งข้อมูลไม่สำเร็จ: ' + e, refPop: this.state.refPop ? { ...this.state.refPop, pending: false, fail: true } : null })); }
-  componentWillUnmount() { clearInterval(this.timer); }
+  componentWillUnmount() { clearInterval(this.timer); document.removeEventListener('visibilitychange', this.vis); window.removeEventListener('focus', this.vis); }
   setUser = (e) => { localStorage.setItem('consign_user', e.target.value); this.setState({ user: e.target.value }); };
   exportShare = () => {
     const blob = new Blob([JSON.stringify({ v: 1, rows: Object.values(this.state.saved) })], { type: 'application/json' });
@@ -426,6 +448,28 @@ class Component extends DCLogic {
       dpRows: L.sort((a, b) => a.hn < b.hn ? -1 : a.hn > b.hn ? 1 : a.code < b.code ? -1 : 1).map(r => { const sv = s.saved[r.key]; return { hn: r.hn, pname: r.pname, date: r.date, code: r.code, item: r.item, qty: r.qty, cost: r.cost ? this.fmt(r.cost) : '', status: sv ? 'บันทึกแล้ว ' + (sv.ref || '') : 'ยังไม่บันทึก', bg: sv ? '#d9efe9' : '#f8e3d3', fg: sv ? '#0b4f4b' : '#7a3a10' }; }),
       dpSave: () => { if (!miss.length) return; this.setState({ dupOpen: false }, () => this.saveRows(miss)); }, dpMissN: miss.length, dpXlsx: () => this.exportList(miss, 'ตรวจรายการซ้ำที่ยังไม่บันทึก') };
   }
+  exRows() {
+    const s = this.state, P = s.price, po = s.po || {}; if (!s.extra) return [];
+    const used = new Set(), idx = {}; Object.values(s.saved).forEach(v => { if (String(v.key).startsWith('X|')) return; (idx[this.nh(v.hn) + '|' + v.code] = idx[this.nh(v.hn) + '|' + v.code] || []).push(v); });
+    return s.extra.map(a => { const [n, hn, pname, date, code, item, unit, qty, fcost, doctor, st, note, dup, bcost] = a, key = 'X|' + n, vp = P && P.vp[code], cost = bcost || fcost, has = !!po[this.nh(hn) + '|' + code];
+      let sv = s.saved[key]; if (!sv) { const c = (idx[this.nh(hn) + '|' + code] || []).find(v => !used.has(v.key) && Number(v.qty) === Number(qty)); if (c) { sv = c; used.add(c.key); } }
+      const ok = st === 'ตรงกับ billing' && !dup, issues = []; if (st !== 'ตรงกับ billing') issues.push(st); if (dup) issues.push('ซ้ำกับแถว ' + dup); if (bcost && Math.abs(bcost - fcost) > 0.01) issues.push('ราคาต่าง');
+      return { sv, n, key, hn, pname, date, code, item: (vp && vp[0]) || item, unit, qty, fcost, bcost, cost, doctor, st, note, dup, ok, issues, has, po: has ? (po[this.nh(hn) + '|' + code][0]) : '', vendor: (P && P.vend && P.vend[code]) || '', cat: vp ? vp[2] : (/^65/.test(code) ? 'SUP' : 'CON'), src: bcost ? 'HIS/billing' : 'ไฟล์เพิ่มเติม' }; });
+  }
+  exVals() {
+    const s = this.state, rows = this.exRows(), g = {}; rows.forEach(r => { (g[r.hn] = g[r.hn] || { hn: r.hn, name: r.pname, rows: [] }).rows.push(r); });
+    const on = r => s.exSel[r.key] === undefined ? r.ok : s.exSel[r.key];
+    let groups = Object.values(g).map(p => { const todo = p.rows.filter(r => !r.sv), pick = todo.filter(on), bad = p.rows.filter(r => !r.ok).length; return { ...p, todo, pick, bad }; });
+    if (s.exF === 'todo') groups = groups.filter(p => p.todo.length); else if (s.exF === 'bad') groups = groups.filter(p => p.todo.length && p.bad);
+    groups.sort((a, b) => b.bad - a.bad || (a.hn < b.hn ? -1 : 1));
+    const tot = rows.length, done = rows.filter(r => r.sv).length, badN = rows.filter(r => !r.ok && !r.sv).length;
+    return { exDisp: s.tab === 'extra' ? 'flex' : 'none', goExtra: () => { this.setState({ tab: 'extra' }); this.sync(); }, tabExBg: s.tab === 'extra' ? '#0b6e69' : 'transparent', tabExFg: s.tab === 'extra' ? '#fff' : '#274744', exCount: s.extra ? s.extra.length : 0,
+      exTot: tot, exDone: done, exBad: badN, exHnN: Object.keys(g).length, exF: s.exF, onExF: e => this.setState({ exF: e.target.value }), exFTodo: s.exF === 'todo', exFBad: s.exF === 'bad', exFAll: s.exF === 'all',
+      exGroups: s.tab !== 'extra' ? [] : groups.map(p => ({ hn: p.hn, name: p.name, info: p.rows.length + ' รายการ · ' + (p.rows.length - p.todo.length) + ' นำเข้าแล้ว', badTxt: p.bad ? p.bad + ' รายการต้องตรวจ' : 'ตรวจผ่าน', badFg: p.bad ? '#7a3a10' : '#0b4f4b', badBg: p.bad ? '#f8e3d3' : '#d9efe9',
+        btn: p.todo.length ? 'นำเข้า HN นี้ (' + p.pick.length + ')' : 'นำเข้าครบแล้ว', btnDis: !p.pick.length, btnBg: p.pick.length ? '#0b6e69' : '#b9cfcb',
+        doImport: () => { if (!p.pick.length) return; if (p.bad && !confirm('HN นี้มี ' + p.bad + ' รายการที่ต้องตรวจ นำเข้าเฉพาะรายการที่ติ๊กไว้ใช่หรือไม่')) return; this.saveRows(p.pick.map(r => ({ key: r.key, hn: r.hn, pname: r.pname, date: r.date, code: r.code, item: r.item, qty: r.qty, cost: r.cost, src: r.src, vendor: r.vendor, po: r.po, has: r.has, cat: r.cat }))); },
+        rows: p.rows.map(r => { const sv = r.sv; return { n: r.n, code: r.code, item: r.item, date: r.date || '-', qty: r.qty, fcost: this.fmt(r.fcost), bcost: r.bcost ? this.fmt(r.bcost) : '-', st: sv ? 'นำเข้าแล้ว ' + (sv.ref || '') : (r.issues.length ? r.issues.join(' · ') : 'ตรวจผ่าน'), stFg: sv ? '#0b4f4b' : (r.issues.length ? '#7a3a10' : '#0b4f4b'), stBg: sv ? '#d9efe9' : (r.issues.length ? '#f8e3d3' : '#d9efe9'), note: r.note, locked: !!sv, checked: !!sv || on(r), tog: () => this.setState({ exSel: { ...this.state.exSel, [r.key]: !on(r) } }) }; }) })) };
+  }
   refVals() {
     const p = this.state.refPop, rows = p ? p.keys.map(k => this.state.saved[k]).filter(Boolean) : [];
     return { rpDisp: p ? 'flex' : 'none', rpRef: p ? (p.pending ? 'กำลังออกเลข...' : p.ref) : '', rpInfo: p ? p.n + ' รายการ · ค้างจ่าย ' + this.fmt(p.val) + ' บาท · ผู้บันทึก ' + p.by : '', rpWarn: p && p.fail ? 'ส่งข้อมูลไป Google Sheet ไม่สำเร็จ เลขนี้อยู่ในเครื่องนี้เท่านั้น' : '', rpClose: () => this.setState({ refPop: null }),
@@ -442,7 +486,7 @@ class Component extends DCLogic {
     const L = this.savedList().filter(r => !r.has); if (!L.length) { alert('ไม่มีรายการค้างจ่ายที่บันทึกไว้'); return; }
     const uom = (this.state.price && this.state.price.uom) || {};
     L.sort((a, b) => a.hn < b.hn ? -1 : a.hn > b.hn ? 1 : a.date < b.date ? -1 : 1);
-    const rows = L.map((r, i) => { const u = uom[r.code] || ''; return { '#': i + 1, 'Item No.': r.code, 'Item Description': (this.state.price.vp[r.code] && this.state.price.vp[r.code][0]) || r.item, 'Free Text': 'HN : ' + r.hn + ' ' + r.pname, 'Quoted Qty.': r.qty, 'UoM Code': u, 'UoM Name': u, 'Unit Price': '', 'Gross Price': r.cost || '', 'Discount %': 0, 'Price after Discount': r.cost || '', 'Tax Code': 'IGN00' }; });
+    const rows = L.map((r, i) => { const u = uom[r.code] || ''; return { '#': i + 1, 'Item No.': r.code, 'Item Description': (this.state.price.vp[r.code] && this.state.price.vp[r.code][0]) || r.item, 'Free Text': 'HN : ' + r.hn + ' ' + r.pname, 'Quoted Qty.': r.qty, 'UoM Code': u, 'UoM Name': u, 'Unit Price': '', 'Gross Price': r.cost || '', 'Discount %': 0, 'Price after Discount': r.cost || '', 'Tax Code': 'IEH07' }; });
     const ws = XLSX.utils.json_to_sheet(rows); ws['!cols'] = Object.keys(rows[0]).map(k => ({ wch: Math.min(120, Math.max(k.length, ...rows.map(r => String(r[k]).length)) + 3) }));
     const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'SAP PO');
     XLSX.writeFile(wb, 'SAP_PO_Consignment_' + new Date().toISOString().slice(0, 10) + '.xlsx');
@@ -496,7 +540,7 @@ class Component extends DCLogic {
       qTotal: all.reduce((a, r) => a + r.qty, 0).toLocaleString(), qPo: all.filter(r => r.has).reduce((a, r) => a + r.qty, 0).toLocaleString(), qNoPo: noPo.reduce((a, r) => a + r.qty, 0).toLocaleString(), cTotal: all.length.toLocaleString(), cPo: (all.length - noPo.length).toLocaleString(), cNoPo: noPo.length.toLocaleString(), cAccrual: this.fmt(noPo.reduce((a, r) => a + r.cost * r.qty, 0)),
       shownNote: all.length > 300 ? 'แสดง 300 จาก ' + all.length.toLocaleString() + ' รายการ (กรองเพิ่มด้วย HN/ชื่อ)' : 'แสดง ' + all.length + ' รายการ',
       rows: rows.map(r => { const sv = !!s.saved[r.key]; return { ...r, rowBg: r.has ? '#fff' : '#fff', qty: r.qty, cost: r.cost ? this.fmt(r.cost) : '', status: r.has ? 'มี PO · รับทราบ' : 'ค้างจ่าย', bg: r.has ? '#d9efe9' : '#f8e3d3', fg: r.has ? '#0b4f4b' : '#7a3a10', btnText: sv ? 'บันทึกแล้ว · ' + (s.saved[r.key].by || '') : 'บันทึก', btnBg: sv ? '#d9efe9' : '#fff', locked: sv, checked: sv || !!s.sel[r.key], refTxt: sv ? s.saved[r.key].ref || '' : '', stopc: (e) => e.stopPropagation(), tog: (e) => { e.stopPropagation(); this.setState({ sel: { ...this.state.sel, [r.key]: !this.state.sel[r.key] } }); }, open: () => this.openDetail(r.hn, r.pname) }; }),
-      ...this.detailVals(), ...this.sumVals(), ...this.refVals(), ...this.dupVals(),
+      ...this.detailVals(), ...this.sumVals(), ...this.refVals(), ...this.exVals(), ...this.dupVals(),
       emptyNote: !ready ? '' : !s.bill.length ? 'อัปโหลดไฟล์ Billing เพื่อเริ่มตรวจสอบ' : !s.cols.hn || !s.cols.code ? 'เลือกคอลัมน์ HN และ Item code ด้านบน' : all.length ? '' : 'ไม่พบรายการตามเงื่อนไข',
       selCount: all.filter(r => s.sel[r.key] && !s.saved[r.key]).length, selAll: () => { const n = {}; all.forEach(r => { if (!s.saved[r.key]) n[r.key] = true; }); this.setState({ sel: n }); }, selNone: () => this.setState({ sel: {} }),
       saveSel: () => { const l = all.filter(r => s.sel[r.key] && !s.saved[r.key]); if (!l.length) { alert('ยังไม่ได้ติ๊กเลือกรายการ'); return; } this.saveRows(l); }, lastRef: s.lastRef ? 'บันทึกล่าสุด Ref ' + s.lastRef : '', savedCount: saved.length, savedAccrual: this.fmt(sNo.reduce((a, r) => a + r.cost * r.qty, 0)),
